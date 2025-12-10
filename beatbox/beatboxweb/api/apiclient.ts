@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from 'axios';
+import axios from 'axios';
 
 // --- CẤU HÌNH URL ---
 const PUBLIC_URL = 'https://suzette-triform-angelina.ngrok-free.dev/api/public';
