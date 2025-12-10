@@ -149,14 +149,14 @@ export default function App() {
           {currentPage === 'profile' && <ProfilePage onLogout={handleLogout} />}
         </main>
 
-        {/* <MusicPlayer 
+        <MusicPlayer 
           currentSong={currentSong}
           // MusicPlayer giờ đây nhận trạng thái phát nhạc đáng tin cậy
           isPlaying={isActuallyPlaying}
           // Việc toggle play/pause sẽ được xử lý bên trong NowPlayingPage
           // onTogglePlay giờ không cần thiết ở đây nữa
           onClickPlayer={() => currentSong && setCurrentPage('nowplaying')}
-        /> */}
+        />
       </div>
     </div>
   );
