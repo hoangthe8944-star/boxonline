@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 
 // --- CẤU HÌNH URL ---
 // Lưu ý: Port là 8081 dựa theo log lỗi của bạn. Nếu bạn chạy port 8080 thì sửa lại nhé.
-const PUBLIC_URL = 'http://localhost:8081/api/public';
+const PUBLIC_URL = 'https://suzette-triform-angelina.ngrok-free.dev';
 
 // ====================================================
 // 1. TYPE DEFINITIONS (DTO)

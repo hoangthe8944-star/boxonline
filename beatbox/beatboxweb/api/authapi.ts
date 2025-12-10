@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:8081/api/auth";
+const BASE_URL = "https://suzette-triform-angelina.ngrok-free.dev";
 
 export interface RegisterRequest {
   username: string;
