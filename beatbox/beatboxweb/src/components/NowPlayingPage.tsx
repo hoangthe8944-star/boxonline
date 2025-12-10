@@ -48,12 +48,15 @@ export function NowPlayingPage({ currentSong, onPlaySong, onPlaybackStatusChange
 
     if (currentSong?.streamUrl) {
       if (audio.src !== currentSong.streamUrl) {
-        console.log("Mobile-friendly: Đang load bài hát mới.");
         audio.src = currentSong.streamUrl;
         audio.load();
-        // Xóa lệnh play() tự động khỏi đây!
-        // Trình duyệt sẽ chờ người dùng nhấn nút "Phát"
-        setIsPlaying(false); // Đảm bảo trạng thái ban đầu là dừng
+      }
+      
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => setIsPlaying(true))
+          .catch(() => setIsPlaying(false)); // Nếu tự động phát lỗi, đảm bảo state là false
       }
     } else {
       audio.pause();
@@ -61,19 +64,19 @@ export function NowPlayingPage({ currentSong, onPlaySong, onPlaybackStatusChange
     }
   }, [currentSong]); // Chỉ chạy khi bài hát thay đổi
 
-  // Hàm handlePlayPause giờ là nơi duy nhất để bắt đầu phát nhạc
+  // Hàm xử lý nút Play/Pause chính
   const handlePlayPause = () => {
     const audio = audioRef.current;
-    if (!audio?.src) return; // Không làm gì nếu chưa có nhạc để load
+    if (!audio) return;
 
-    console.log("Nút Play/Pause được nhấn.");
     if (isPlaying) {
       audio.pause();
+      setIsPlaying(false);
     } else {
-      // Lệnh play() được gọi trực tiếp từ hành động chạm của người dùng -> HỢP LỆ
-      audio.play().catch(e => console.error("Lỗi khi play thủ công:", e));
+      audio.play().then(() => setIsPlaying(true));
     }
   };
+
   // Hàm xử lý khi bài hát kết thúc tự nhiên
   const handleAudioEnded = () => {
     setIsPlaying(false);
@@ -91,7 +94,7 @@ export function NowPlayingPage({ currentSong, onPlaySong, onPlaybackStatusChange
     //   setIsLiked(!newLikedState); // Hoàn tác nếu lỗi
     // }
   };
-
+  
 
   // Dữ liệu mẫu với streamUrl để test
   const queueSongs: ExtendedSong[] = [
@@ -163,7 +166,6 @@ export function NowPlayingPage({ currentSong, onPlaySong, onPlaybackStatusChange
         ref={audioRef}
         onEnded={handleAudioEnded}
         className="hidden"
-        playsInline
       />
 
       {/* Left Side - Album Art & Info & Lyrics */}
