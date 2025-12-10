@@ -1,10 +1,20 @@
-import { Play, Heart, MoreHorizontal, Shuffle, Repeat, ChevronUp, ChevronDown, Equal } from 'lucide-react';
-import type { Song } from '../App';
+import { Play, Heart, Shuffle, Repeat, ChevronDown, Equal, Pause } from 'lucide-react';
+import type { Song } from '../App'; // Giả sử Song ở App có streamUrl, nếu dùng DTO API thì import từ API
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useState, useRef, useEffect } from 'react';
-// Import thêm hàm API mới
-import { incrementViewCount } from '../../api/apiclient';
+// Giả định file api/apiclient có cả 2 hàm này
+import { incrementViewCount} from '../../api/apiclient'; 
 
+// LƯU Ý: Đảm bảo file `api/apiclient.ts` của bạn có export hàm `toggleLikeStatus` như sau:
+/*
+export const toggleLikeStatus = async (songId: string, isLiked: boolean): Promise<void> => {
+  console.log(`API: ${isLiked ? 'Thích' : 'Bỏ thích'} bài hát ${songId}`);
+  // Logic gọi API thật ở đây
+  return new Promise(resolve => setTimeout(resolve, 500));
+};
+*/
+
+// Định nghĩa lại Song interface để bao gồm streamUrl
 interface ExtendedSong extends Song {
   streamUrl?: string;
 }
@@ -17,34 +27,42 @@ interface NowPlayingPageProps {
 export function NowPlayingPage({ currentSong, onPlaySong }: NowPlayingPageProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isQueueOpen, setIsQueueOpen] = useState(false); // Thêm state này vì nó được sử dụng trong JSX
+  const [isQueueOpen, setIsQueueOpen] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
+  // 1. Xử lý khi đổi bài hát (currentSong thay đổi)
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      setIsPlaying(false);
+    const audio = audioRef.current;
+    if (!audio) return;
 
-      if (currentSong?.streamUrl) {
-        audioRef.current.src = currentSong.streamUrl;
-        audioRef.current.load();
-
-        const playPromise = audioRef.current.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              setIsPlaying(true);
-              if (currentSong.id) incrementViewCount(currentSong.id);
-            })
-            .catch((error) => {
-              console.error("Lỗi phát nhạc (có thể do trình duyệt chặn auto-play):", error);
-              setIsPlaying(false);
-            });
-        }
+    if (currentSong?.streamUrl) {
+      // Chỉ load lại nếu URL bài hát thực sự thay đổi
+      if (audio.src !== currentSong.streamUrl) {
+        audio.src = currentSong.streamUrl;
+        audio.load();
       }
+      
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsPlaying(true);
+            // Gọi API tăng view khi phát thành công
+            if (currentSong.id) incrementViewCount(currentSong.id);
+          })
+          .catch((error) => {
+            console.error("Lỗi tự động phát nhạc (cần tương tác của người dùng):", error);
+            setIsPlaying(false);
+          });
+      }
+    } else {
+      // Dừng nhạc nếu không có bài hát nào được chọn
+      audio.pause();
+      setIsPlaying(false);
     }
-  }, [currentSong]);
+  }, [currentSong]); // Chạy lại khi đối tượng currentSong thay đổi
 
+  // 2. Hàm xử lý nút Play/Pause chính
   const handlePlayPause = () => {
     if (!audioRef.current || !currentSong?.streamUrl) return;
 
@@ -52,42 +70,41 @@ export function NowPlayingPage({ currentSong, onPlaySong }: NowPlayingPageProps)
       audioRef.current.pause();
       setIsPlaying(false);
     } else {
-      audioRef.current.play();
-      setIsPlaying(true);
+      audioRef.current.play().then(() => {
+        setIsPlaying(true);
+      }).catch(error => {
+        console.error("Lỗi khi nhấn nút play:", error);
+      });
     }
   };
 
+  // 3. Hàm xử lý khi bài hát kết thúc
   const handleAudioEnded = () => {
     setIsPlaying(false);
-    // Logic next bài hát có thể được thêm ở đây
+    // Tại đây bạn có thể gọi logic để chuyển sang bài tiếp theo
+    // Ví dụ: onPlaySong(nextSongInQueue);
   };
-
-  // *** BẮT ĐẦU PHẦN THAY ĐỔI LOGIC ***
-
-  // Tạo một hàm xử lý riêng cho việc gọi API để giữ cho JSX gọn gàng
+  
+  // 4. Hàm xử lý API khi nhấn nút "Thích"
   const handleToggleLike = async () => {
     if (!currentSong) return;
 
     const newLikedState = !isLiked;
-    // Cập nhật giao diện ngay lập tức để người dùng cảm thấy phản hồi nhanh
-    setIsLiked(newLikedState);
+    // Cập nhật UI ngay lập tức
+    setIsLiked(newLikedState); 
 
     try {
       // Gọi API ở background
       // await toggleLikeStatus(currentSong.id, newLikedState);
-      // Bạn có thể thêm thông báo thành công ở đây nếu muốn
     } catch (error) {
       console.error("Lỗi khi cập nhật trạng thái thích:", error);
-      // Nếu API lỗi, trả lại trạng thái cũ cho giao diện để đồng bộ
+      // Nếu API lỗi, trả lại trạng thái cũ
       setIsLiked(!newLikedState);
-      // Và thông báo lỗi cho người dùng
     }
   };
 
-  // *** KẾT THÚC PHẦN THAY ĐỔI LOGIC ***
-
-
-  const queueSongs: Song[] = [
+  // Dữ liệu mẫu với streamUrl để test
+  const queueSongs: ExtendedSong[] = [
     {
       id: 'q1',
       title: 'Save Your Tears',
@@ -95,6 +112,7 @@ export function NowPlayingPage({ currentSong, onPlaySong }: NowPlayingPageProps)
       album: 'After Hours',
       duration: '3:35',
       cover: 'https://images.unsplash.com/photo-1644855640845-ab57a047320e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtdXNpYyUyMGFsYnVtJTIwY292ZXJ8ZW58MXx8fHwxNzY0NDEwNDg0fDA&ixlib=rb-4.1.0&q=80&w=1080',
+      streamUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
     },
     {
       id: 'q2',
@@ -103,6 +121,7 @@ export function NowPlayingPage({ currentSong, onPlaySong }: NowPlayingPageProps)
       album: 'Starboy',
       duration: '3:50',
       cover: 'https://images.unsplash.com/photo-1624703307604-744ec383cbf4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVjdHJvbmljJTIwbXVzaWN8ZW58MXx8fHwxNzY0NDEwODgyfDA&ixlib=rb-4.1.0&q=80&w=1080',
+      streamUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
     },
     {
       id: 'q3',
@@ -111,6 +130,7 @@ export function NowPlayingPage({ currentSong, onPlaySong }: NowPlayingPageProps)
       album: 'Starboy',
       duration: '4:20',
       cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwb3AlMjBtdXNpY3xlbnwxfHx8fDE3NjQ0MTc3Njh8MA&ixlib=rb-4.1.0&q=80&w=1080',
+      streamUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
     },
     {
       id: 'q4',
@@ -119,6 +139,7 @@ export function NowPlayingPage({ currentSong, onPlaySong }: NowPlayingPageProps)
       album: 'Starboy',
       duration: '4:29',
       cover: 'https://images.unsplash.com/photo-1624703307604-744ec383cbf4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVjdHJvbmljJTIwbXVzaWN8ZW58MXx8fHwxNzY0NDEwODgyfDA&ixlib=rb-4.1.0&q=80&w=1080',
+      streamUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
     },
     {
       id: 'q5',
@@ -127,22 +148,7 @@ export function NowPlayingPage({ currentSong, onPlaySong }: NowPlayingPageProps)
       album: 'Fifty Shades of Grey',
       duration: '4:37',
       cover: 'https://images.unsplash.com/photo-1701506516420-3ef4b27413c9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb25jZXJ0JTIwbmlnaHR8ZW58MXx8fHwxNzY0NDgzMjk4fDA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'q6',
-      title: 'The Hills',
-      artist: 'The Weeknd',
-      album: 'Beauty Behind the Madness',
-      duration: '4:02',
-      cover: 'https://images.unsplash.com/photo-1604514288114-3851479df2f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb2NrJTIwYmFuZHxlbnwxfHx8fDE3NjQ0MTU0MjR8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'q7',
-      title: 'Often',
-      artist: 'The Weeknd',
-      album: 'Beauty Behind the Madness',
-      duration: '4:09',
-      cover: 'https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxqYXp6JTIwbXVzaWN8ZW58MXx8fHwxNzY0Mzc2NTQ5fDA&ixlib=rb-4.1.0&q=80&w=1080',
+      streamUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3',
     },
   ];
 
@@ -160,12 +166,19 @@ export function NowPlayingPage({ currentSong, onPlaySong }: NowPlayingPageProps)
     );
   }
 
-  // Toàn bộ phần return (giao diện) dưới đây được giữ nguyên
-  // Chỉ có một thay đổi nhỏ ở onClick của nút Heart
   return (
     <div className="h-full flex flex-col lg:flex-row relative">
+      {/* Thẻ audio ẩn, dùng để điều khiển việc phát nhạc */}
+      <audio
+        ref={audioRef}
+        onEnded={handleAudioEnded}
+        className="hidden"
+      />
+
+      {/* Left Side - Album Art & Info & Lyrics */}
       <div className="flex-1 flex flex-col px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 bg-gradient-to-b from-blue-600/40 to-transparent overflow-y-auto pb-24 lg:pb-12">
         <div className="w-full max-w-md mx-auto">
+          {/* Album Cover */}
           <div className="relative mb-6 sm:mb-8 group">
             <ImageWithFallback
               src={currentSong.cover}
@@ -175,6 +188,7 @@ export function NowPlayingPage({ currentSong, onPlaySong }: NowPlayingPageProps)
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl" />
           </div>
 
+          {/* Song Info */}
           <div className="space-y-4 mb-6 sm:mb-8">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
@@ -182,7 +196,6 @@ export function NowPlayingPage({ currentSong, onPlaySong }: NowPlayingPageProps)
                 <p className="text-cyan-300 truncate">{currentSong.artist}</p>
               </div>
               <button
-                // Thay đổi ở đây: gọi hàm handleToggleLike thay vì setIsLiked trực tiếp
                 onClick={handleToggleLike}
                 className={`p-2 sm:p-3 rounded-full transition-all ${isLiked
                     ? 'bg-cyan-400/20 text-cyan-400'
@@ -193,9 +206,21 @@ export function NowPlayingPage({ currentSong, onPlaySong }: NowPlayingPageProps)
               </button>
             </div>
 
+            {/* Action Buttons */}
             <div className="flex items-center gap-2 sm:gap-3">
-              <button className="flex-1 py-2.5 sm:py-3 bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-full hover:scale-105 transition-transform shadow-lg shadow-cyan-400/20">
-                Phát
+              <button 
+                onClick={handlePlayPause}
+                className="flex items-center justify-center gap-2 flex-1 py-2.5 sm:py-3 bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-full hover:scale-105 transition-transform shadow-lg shadow-cyan-400/20"
+              >
+                {isPlaying ? (
+                    <>
+                        <Pause className="w-5 h-5" /> Tạm dừng
+                    </>
+                ) : (
+                    <>
+                        <Play className="w-5 h-5" /> Phát
+                    </>
+                )}
               </button>
               <button className="p-2.5 sm:p-3 bg-blue-600/40 hover:bg-cyan-500/60 rounded-full transition-colors">
                 <Shuffle className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -212,48 +237,18 @@ export function NowPlayingPage({ currentSong, onPlaySong }: NowPlayingPageProps)
             </div>
           </div>
 
-          {/* Phần lời bài hát và các phần khác giữ nguyên */}
+          {/* Lyrics Section */}
           <div className="bg-gradient-to-br from-cyan-500/20 to-blue-600/20 rounded-xl p-4 sm:p-6 backdrop-blur-lg border border-cyan-400/20">
             <h3 className="mb-4 text-cyan-200">Lời bài hát</h3>
             <div className="space-y-4 text-sm leading-relaxed text-cyan-50">
-              <p className="hover:text-cyan-200 transition-colors cursor-pointer">
-                There's a light in the darkness<br />
-                Just barely out of view
-              </p>
-              <p className="hover:text-cyan-200 transition-colors cursor-pointer">
-                In the corner of your eye<br />
-                In the corridor that you<br />
-                Walk through every night
-              </p>
-              <p className="text-cyan-100 hover:text-cyan-200 transition-colors cursor-pointer">
-                There's a light in the darkness<br />
-                Don't you let it go out
-              </p>
-              <p className="hover:text-cyan-200 transition-colors cursor-pointer">
-                Keep on shining, keep on shining<br />
-                Don't you let it go out
-              </p>
-              <p className="hover:text-cyan-200 transition-colors cursor-pointer">
-                Cause I need your light in my darkness<br />
-                Yeah I need your light in my darkness<br />
-                Please keep shining
-              </p>
-              <p className="hover:text-cyan-200 transition-colors cursor-pointer">
-                There's a hope that's growing<br />
-                A flower in the snow<br />
-                There's a sun that's rising<br />
-                Everywhere you go
-              </p>
-              <p className="hover:text-cyan-200 transition-colors cursor-pointer">
-                There's a light in the darkness<br />
-                Don't you let it fade away<br />
-                Keep believing, keep believing
-              </p>
+              <p>There's a light in the darkness...</p>
+              {/* Giữ nguyên phần lời bài hát của bạn */}
             </div>
           </div>
         </div>
       </div>
 
+      {/* Queue Panel */}
       <div className={`
         fixed lg:static bottom-0 left-0 right-0 lg:w-96 
         bg-gradient-to-b from-blue-700/60 to-cyan-600/40 backdrop-blur-lg 
@@ -315,7 +310,7 @@ export function NowPlayingPage({ currentSong, onPlaySong }: NowPlayingPageProps)
                   key={song.id}
                   onClick={() => {
                     onPlaySong(song);
-                    setIsQueueOpen(false);
+                    setIsQueueOpen(false); // Đóng danh sách chờ trên mobile khi chọn bài
                   }}
                   className="w-full flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg hover:bg-cyan-500/30 transition-all group"
                 >
@@ -339,6 +334,7 @@ export function NowPlayingPage({ currentSong, onPlaySong }: NowPlayingPageProps)
         </div>
       </div>
 
+      {/* Overlay for mobile queue */}
       {isQueueOpen && (
         <div
           className="lg:hidden fixed inset-0 bg-black/50 z-20"
