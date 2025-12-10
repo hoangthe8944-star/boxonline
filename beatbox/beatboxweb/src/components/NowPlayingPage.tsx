@@ -19,104 +19,82 @@ interface ExtendedSong extends Song {
   streamUrl?: string;
 }
 
+// Định nghĩa props, bao gồm cả hàm callback mới
 interface NowPlayingPageProps {
   currentSong: ExtendedSong | null;
   onPlaySong: (song: Song) => void;
+  onPlaybackStatusChange: (isPlaying: boolean) => void;
 }
 
-export function NowPlayingPage({ currentSong, onPlaySong }: NowPlayingPageProps) {
-  const [isLiked, setIsLiked] = useState(false);
+export function NowPlayingPage({ currentSong, onPlaySong, onPlaybackStatusChange }: NowPlayingPageProps) {
+  // State isPlaying này chỉ là state nội bộ, nhưng nó sẽ được "báo cáo" lên cha
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
   const [isQueueOpen, setIsQueueOpen] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // 1. Xử lý khi đổi bài hát (currentSong thay đổi)
+  // ========================================================================
+  // === CƠ CHẾ BÁO CÁO TRẠNG THÁI LÊN COMPONENT CHA ===
+  // Mỗi khi `isPlaying` nội bộ thay đổi, gọi callback để cập nhật App.tsx
+  useEffect(() => {
+    onPlaybackStatusChange(isPlaying);
+  }, [isPlaying, onPlaybackStatusChange]);
+  // ========================================================================
+
+  // useEffect để xử lý việc load và tự động phát nhạc khi bài hát thay đổi
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
     if (currentSong?.streamUrl) {
-      // Chỉ load lại nếu URL bài hát thực sự thay đổi
       if (audio.src !== currentSong.streamUrl) {
         audio.src = currentSong.streamUrl;
         audio.load();
       }
-
+      
       const playPromise = audio.play();
       if (playPromise !== undefined) {
         playPromise
-          .then(() => {
-            setIsPlaying(true);
-            // Gọi API tăng view khi phát thành công
-            // if (currentSong.id) incrementViewCount(currentSong.id);
-          })
-          .catch((error) => {
-            console.error("Lỗi tự động phát nhạc (cần tương tác của người dùng):", error);
-            setIsPlaying(false);
-          });
+          .then(() => setIsPlaying(true))
+          .catch(() => setIsPlaying(false)); // Nếu tự động phát lỗi, đảm bảo state là false
       }
     } else {
-      // Dừng nhạc nếu không có bài hát nào được chọn
       audio.pause();
       setIsPlaying(false);
     }
-  }, [currentSong]); // Chạy lại khi đối tượng currentSong thay đổi
+  }, [currentSong]); // Chỉ chạy khi bài hát thay đổi
 
-  // 2. Hàm xử lý nút Play/Pause chính
+  // Hàm xử lý nút Play/Pause chính
   const handlePlayPause = () => {
-    console.log('--- Nút Play/Pause đã được nhấn! ---');
-    console.log('Đối tượng audio hiện tại:', audioRef.current);
-
-    if (!audioRef.current || !currentSong?.streamUrl) {
-      console.error('Không có audio ref hoặc streamUrl để phát.');
-      return;
-    }
+    const audio = audioRef.current;
+    if (!audio) return;
 
     if (isPlaying) {
-      console.log('Đang là isPlaying=true, thực hiện pause()');
-      audioRef.current.pause();
+      audio.pause();
       setIsPlaying(false);
     } else {
-      console.log('Đang là isPlaying=false, thực hiện play()');
-      const playPromise = audioRef.current.play();
-
-      // Bắt lỗi từ chính hàm play()
-      if (playPromise !== undefined) {
-        playPromise.then(() => {
-          console.log('Phát nhạc thành công!');
-          setIsPlaying(true);
-        }).catch(error => {
-          // Lỗi này sẽ hiện ra nếu trình duyệt chặn phát
-          console.error('Lỗi khi thực thi audio.play():', error);
-          setIsPlaying(false);
-        });
-      }
+      audio.play().then(() => setIsPlaying(true));
     }
   };
-  // 3. Hàm xử lý khi bài hát kết thúc
+
+  // Hàm xử lý khi bài hát kết thúc tự nhiên
   const handleAudioEnded = () => {
     setIsPlaying(false);
-    // Tại đây bạn có thể gọi logic để chuyển sang bài tiếp theo
-    // Ví dụ: onPlaySong(nextSongInQueue);
+    // TODO: Thêm logic tự động chuyển bài ở đây
   };
 
-  // 4. Hàm xử lý API khi nhấn nút "Thích"
+  // Hàm xử lý API like/unlike (ví dụ)
   const handleToggleLike = async () => {
     if (!currentSong) return;
-
     const newLikedState = !isLiked;
-    // Cập nhật UI ngay lập tức
     setIsLiked(newLikedState);
-
-    try {
-      // Gọi API ở background
-      // await toggleLikeStatus(currentSong.id, newLikedState);
-    } catch (error) {
-      console.error("Lỗi khi cập nhật trạng thái thích:", error);
-      // Nếu API lỗi, trả lại trạng thái cũ
-      setIsLiked(!newLikedState);
-    }
+    // try {
+    //   await toggleLikeStatus(currentSong.id, newLikedState);
+    // } catch (error) {
+    //   setIsLiked(!newLikedState); // Hoàn tác nếu lỗi
+    // }
   };
+  
 
   // Dữ liệu mẫu với streamUrl để test
   const queueSongs: ExtendedSong[] = [

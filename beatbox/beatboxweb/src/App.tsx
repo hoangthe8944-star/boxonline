@@ -12,7 +12,7 @@ import { NowPlayingPage } from './components/NowPlayingPage';
 import { ProfilePage } from './components/ProfilePage';
 import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
-import { logout } from '../api/authapi'; // Import hàm logout nếu cần dùng sau này
+import { logout } from '../api/authapi';
 import './index.css';
 
 export interface Song {
@@ -22,6 +22,7 @@ export interface Song {
   album: string;
   duration: string;
   cover: string;
+  streamUrl?: string; // Quan trọng: Bao gồm cả streamUrl
 }
 
 export interface Playlist {
@@ -33,49 +34,45 @@ export interface Playlist {
 }
 
 export default function App() {
-  // State quản lý trang nội dung nhạc
+  // State quản lý trang nội dung
   const [currentPage, setCurrentPage] = useState<'home' | 'library' | 'playlists' | 'search' | 'nowplaying' | 'profile'>('home');
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  
+  // ========================================================================
+  // === "NGUỒN CHÂN LÝ DUY NHẤT" VỀ TRẠNG THÁI PHÁT NHẠC ===
+  // State này sẽ được cập nhật bởi NowPlayingPage thông qua callback.
+  const [isActuallyPlaying, setIsActuallyPlaying] = useState(false);
+  // ========================================================================
+
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
   // State quản lý xác thực
   const [token, setToken] = useState<string | null>(localStorage.getItem("accessToken"));
-  
-  // State mới: Quản lý đang ở màn hình 'login' hay 'register'
   const [authView, setAuthView] = useState<'login' | 'register'>('login');
 
+  // Hàm được gọi khi người dùng chọn một bài hát để phát
   const handlePlaySong = (song: Song) => {
     setCurrentSong(song);
-    setIsPlaying(true);
     setCurrentPage('nowplaying');
   };
-
-  const handleTogglePlay = () => {
-    setIsPlaying(!isPlaying);
-  };
-
-  // Hàm xử lý khi Đăng nhập/Đăng ký thành công
+  
+  // Các hàm xử lý xác thực
   const handleAuthSuccess = (newToken: string) => {
     setToken(newToken);
-    // Khi có token, React sẽ tự render lại giao diện chính (phần return phía dưới)
   };
 
-  // Hàm đăng xuất (có thể truyền xuống Sidebar hoặc Header)
   const handleLogout = () => {
     logout(); 
     setToken(null);
-    setAuthView('login'); // Reset về trang login
-    setCurrentSong(null); // Tắt nhạc đang phát
-    setIsPlaying(false);
+    setAuthView('login');
+    setCurrentSong(null);
+    setIsActuallyPlaying(false); // Reset trạng thái nhạc khi logout
   };
 
   // --- LOGIC ĐIỀU HƯỚNG MÀN HÌNH AUTH ---
-  // Nếu chưa có token -> Hiển thị Login hoặc Register
   if (!token) {
-    // Style background chung cho màn hình auth
     const authBackgroundClass = "flex items-center justify-center min-h-screen bg-gray-900 bg-[url('https://images.unsplash.com/photo-1514525253440-b393452e8d26?auto=format&fit=crop&q=80')] bg-cover bg-center bg-no-repeat bg-blend-overlay";
-
     if (authView === 'register') {
       return (
         <div className={authBackgroundClass}>
@@ -86,8 +83,6 @@ export default function App() {
         </div>
       );
     } 
-    
-    // Mặc định là Login view
     return (
       <div className={authBackgroundClass}>
         <LoginForm 
@@ -99,9 +94,8 @@ export default function App() {
   }
 
   // --- GIAO DIỆN CHÍNH (KHI ĐÃ LOGIN) ---
-return (
+  return (
     <div className="flex h-screen bg-gradient-to-br from-blue-700 via-cyan-600 to-cyan-400 text-white overflow-hidden">
-      {/* Mobile Menu Button */}
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-blue-900/80 backdrop-blur-lg lg:hidden"
@@ -109,7 +103,6 @@ return (
         <Menu className="w-6 h-6" />
       </button>
 
-      {/* Overlay for mobile */}
       {isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-30 lg:hidden"
@@ -117,7 +110,6 @@ return (
         />
       )}
 
-      {/* Sidebar */}
       <Sidebar 
         currentPage={currentPage} 
         onNavigate={(page) => {
@@ -132,30 +124,37 @@ return (
         }}
       />
 
-      {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
         <Header 
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           onSearch={() => setCurrentPage('search')}
         />
 
-        {/* Page Content */}
         <main className="flex-1 overflow-y-auto pb-32 lg:pb-28">
           {currentPage === 'home' && <HomePage onPlaySong={handlePlaySong} />}
           {currentPage === 'library' && <LibraryPage onPlaySong={handlePlaySong} />}
           {currentPage === 'playlists' && <PlaylistsPage onPlaySong={handlePlaySong} />}
           {currentPage === 'search' && <SearchPage searchQuery={searchQuery} onPlaySong={handlePlaySong} />}
-          {currentPage === 'nowplaying' && <NowPlayingPage currentSong={currentSong} onPlaySong={handlePlaySong} />}
+          
+          {currentPage === 'nowplaying' && 
+            <NowPlayingPage 
+              currentSong={currentSong} 
+              onPlaySong={handlePlaySong}
+              // Truyền hàm callback xuống để NowPlayingPage "báo cáo" trạng thái
+              onPlaybackStatusChange={setIsActuallyPlaying} 
+            />
+          }
+
           {currentPage === 'profile' && <ProfilePage onLogout={handleLogout} />}
         </main>
 
-        {/* Music Player */}
         <MusicPlayer 
           currentSong={currentSong}
-          isPlaying={isPlaying}
-          onTogglePlay={handleTogglePlay}
+          // MusicPlayer giờ đây nhận trạng thái phát nhạc đáng tin cậy
+          isPlaying={isActuallyPlaying}
+          // Việc toggle play/pause sẽ được xử lý bên trong NowPlayingPage
+          // onTogglePlay giờ không cần thiết ở đây nữa
           onClickPlayer={() => currentSong && setCurrentPage('nowplaying')}
         />
       </div>
