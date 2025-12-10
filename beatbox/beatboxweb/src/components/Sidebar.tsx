@@ -1,11 +1,14 @@
-import { Home, Library, ListMusic, Search, Heart, Clock } from 'lucide-react';
+import { Home, Library, ListMusic, Search, Heart, Clock, User, Crown } from 'lucide-react';
 
 interface SidebarProps {
-  currentPage: 'home' | 'library' | 'playlists' | 'search' | 'nowplaying' | 'profile';
+  currentPage: 'home' | 'library' | 'playlists' | 'search' | 'nowplaying';
   onNavigate: (page: 'home' | 'library' | 'playlists' | 'search' | 'nowplaying') => void;
+  isOpen: boolean;
+  onClose: () => void;
+  onProfileClick: () => void;
 }
 
-export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
+export function Sidebar({ currentPage, onNavigate, isOpen, onClose, onProfileClick }: SidebarProps) {
   const menuItems = [
     { id: 'home' as const, label: 'Trang chủ', icon: Home },
     { id: 'search' as const, label: 'Tìm kiếm', icon: Search },
@@ -19,7 +22,12 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
   ];
 
   return (
-    <aside className="w-64 bg-gradient-to-b from-blue-950/80 to-blue-900/60 backdrop-blur-lg border-r border-blue-700/30 flex flex-col">
+    <aside className={`
+      fixed lg:static inset-y-0 left-0 z-40
+      w-64 bg-gradient-to-b from-blue-950/80 to-blue-900/60 backdrop-blur-lg border-r border-blue-700/30 flex flex-col
+      transform transition-transform duration-300 lg:transform-none
+      ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+    `}>
       {/* Logo */}
       <div className="p-6">
         <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
@@ -78,16 +86,24 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
         </div>
       </nav>
 
-      {/* Bottom Section */}
-      <div className="p-4 border-t border-blue-700/30">
-        <div className="bg-gradient-to-br from-blue-800/40 to-cyan-700/40 backdrop-blur rounded-lg p-4 border border-blue-600/20">
-          <p className="text-sm text-blue-200 mb-2">
-            Tạo playlist đầu tiên của bạn
-          </p>
-          <button className="text-xs px-4 py-2 bg-white text-blue-900 rounded-full hover:scale-105 transition-transform">
-            Tạo playlist
-          </button>
-        </div>
+      {/* Bottom Section - Premium & User Info */}
+      <div className="p-4 border-t border-blue-700/30 space-y-3">
+        {/* Premium Button */}
+        <button className="w-full px-4 py-3 bg-gradient-to-r from-yellow-500 to-orange-600 text-white rounded-lg hover:scale-105 hover:shadow-lg hover:shadow-orange-600/30 transition-all flex items-center justify-center gap-2">
+          <Crown className="w-5 h-5" />
+          <span>Nâng cấp Premium</span>
+        </button>
+
+        {/* User Profile Button */}
+        <button
+          onClick={onProfileClick}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-blue-800/30 hover:bg-blue-700/40 transition-all"
+        >
+          <div className="p-2 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-500">
+            <User className="w-5 h-5" />
+          </div>
+          <span>Tài khoản của tôi</span>
+        </button>
       </div>
     </aside>
   );
