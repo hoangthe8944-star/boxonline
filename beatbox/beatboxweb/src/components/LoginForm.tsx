@@ -13,8 +13,8 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ onLoginSuccess, onSwitchToRegister }: LoginFormProps) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("admin@store.com");
+  const [password, setPassword] = useState("admin123");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -150,7 +150,7 @@ export function LoginForm({ onLoginSuccess, onSwitchToRegister }: LoginFormProps
           </form>
           {/* Footer */}
           <div className="rp-footer">
-            Đã có tài khoản? 
+            Đã có tài khoản?
             <button onClick={onSwitchToRegister} className="lp-link bg-transparent border-none cursor-pointer">
               Đăng nhập
             </button>
