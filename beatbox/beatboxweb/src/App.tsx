@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { Menu } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { MusicPlayer } from './components/MusicPlayer';
@@ -34,12 +35,10 @@ export interface Playlist {
 export default function App() {
   // State quản lý trang nội dung nhạc
   const [currentPage, setCurrentPage] = useState<'home' | 'library' | 'playlists' | 'search' | 'nowplaying' | 'profile'>('home');
-  
-  // State quản lý trình phát nhạc
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   // State quản lý xác thực
   const [token, setToken] = useState<string | null>(localStorage.getItem("accessToken"));
   
@@ -100,24 +99,50 @@ export default function App() {
   }
 
   // --- GIAO DIỆN CHÍNH (KHI ĐÃ LOGIN) ---
-  return (
-    <div className="flex h-screen bg-gradient-to-br from-blue-950 via-blue-800 to-cyan-700 text-white overflow-hidden">
+return (
+    <div className="flex h-screen bg-gradient-to-br from-blue-700 via-cyan-600 to-cyan-400 text-white overflow-hidden">
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-blue-900/80 backdrop-blur-lg lg:hidden"
+      >
+        <Menu className="w-6 h-6" />
+      </button>
+
+      {/* Overlay for mobile */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} />
+      <Sidebar 
+        currentPage={currentPage} 
+        onNavigate={(page) => {
+          setCurrentPage(page);
+          setIsSidebarOpen(false);
+        }} 
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        onProfileClick={() => {
+          setCurrentPage('profile');
+          setIsSidebarOpen(false);
+        }}
+      />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <Header
+        <Header 
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           onSearch={() => setCurrentPage('search')}
-          onOpenProfile={() => setCurrentPage('profile')}
-          // Bạn có thể truyền thêm prop onLogout={handleLogout} vào Header nếu muốn nút đăng xuất ở đó
         />
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto pb-32">
+        <main className="flex-1 overflow-y-auto pb-32 lg:pb-28">
           {currentPage === 'home' && <HomePage onPlaySong={handlePlaySong} />}
           {currentPage === 'library' && <LibraryPage onPlaySong={handlePlaySong} />}
           {currentPage === 'playlists' && <PlaylistsPage onPlaySong={handlePlaySong} />}
@@ -127,7 +152,7 @@ export default function App() {
         </main>
 
         {/* Music Player */}
-        <MusicPlayer
+        <MusicPlayer 
           currentSong={currentSong}
           isPlaying={isPlaying}
           onTogglePlay={handleTogglePlay}
