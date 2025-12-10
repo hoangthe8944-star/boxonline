@@ -48,7 +48,7 @@ export function NowPlayingPage({ currentSong, onPlaySong }: NowPlayingPageProps)
           .then(() => {
             setIsPlaying(true);
             // Gọi API tăng view khi phát thành công
-            if (currentSong.id) incrementViewCount(currentSong.id);
+            // if (currentSong.id) incrementViewCount(currentSong.id);
           })
           .catch((error) => {
             console.error("Lỗi tự động phát nhạc (cần tương tác của người dùng):", error);
