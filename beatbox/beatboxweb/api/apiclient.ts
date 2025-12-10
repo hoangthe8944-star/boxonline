@@ -1,7 +1,6 @@
 import axios, { AxiosResponse } from 'axios';
 
 // --- CẤU HÌNH URL ---
-// Lưu ý: Port là 8081 dựa theo log lỗi của bạn. Nếu bạn chạy port 8080 thì sửa lại nhé.
 const PUBLIC_URL = 'https://suzette-triform-angelina.ngrok-free.dev/api/public';
 
 // ====================================================
@@ -14,43 +13,50 @@ export interface Song {
     artistName: string;
     albumName: string;
     coverUrl: string;
-    duration: number;      // Giây
-    streamUrl: string;     // Link phát nhạc
+    duration: number;      
+    streamUrl: string;     
     status: 'PENDING' | 'PUBLISHED' | 'REJECTED';
     viewCount: number;
     isExplicit: boolean;
     genre: string[];
 }
 
+// ====================================================
+// 2. API CALLS (Đã sửa lỗi cú pháp)
+// ====================================================
+
 /**
- * Lấy danh sách nhạc Trending (Cho Trang Chủ User)
+ * Lấy danh sách nhạc Trending
  */
 export const getTrendingSongs = (limit: number = 10) => {
-    return axios.get<Song[]>(`${PUBLIC_URL}/songs/trending?limit=${limit}`),{
+    // SỬA: Đưa object chứa headers vào BÊN TRONG dấu ngoặc của axios.get
+    return axios.get<Song[]>(`${PUBLIC_URL}/songs/trending?limit=${limit}`, {
          headers: {
-            "ngrok-skip-browser-warning": "69420" // <--- QUAN TRỌNG: Thêm dòng này
+            "ngrok-skip-browser-warning": "69420"
         }
-    };
+    });
 };
 
 /**
- * Tìm kiếm bài hát công khai (Cho User)
+ * Tìm kiếm bài hát công khai
  */
 export const searchPublicSongs = (query: string) => {
-    return axios.get<Song[]>(`${PUBLIC_URL}/search?query=${encodeURIComponent(query)}`),{
+    // SỬA: Đưa object chứa headers vào BÊN TRONG dấu ngoặc
+    return axios.get<Song[]>(`${PUBLIC_URL}/search?query=${encodeURIComponent(query)}`, {
          headers: {
-            "ngrok-skip-browser-warning": "69420" // <--- QUAN TRỌNG: Thêm dòng này
+            "ngrok-skip-browser-warning": "69420"
         }
-    };
+    });
 };
 
 /**
- * Tăng lượt nghe (Gọi khi User bấm Play)
+ * Tăng lượt nghe
  */
 export const incrementViewCount = (songId: string) => {
-    return axios.post(`${PUBLIC_URL}/songs/${songId}/view`),{
+    // SỬA: Hàm POST cần 3 tham số: url, body (để rỗng {}), và config (chứa headers)
+    return axios.post(`${PUBLIC_URL}/songs/${songId}/view`, {}, {
          headers: {
-            "ngrok-skip-browser-warning": "69420" // <--- QUAN TRỌNG: Thêm dòng này
+            "ngrok-skip-browser-warning": "69420"
         }
-    };
+    });
 };
