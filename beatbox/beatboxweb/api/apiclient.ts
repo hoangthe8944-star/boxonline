@@ -26,19 +26,31 @@ export interface Song {
  * Lấy danh sách nhạc Trending (Cho Trang Chủ User)
  */
 export const getTrendingSongs = (limit: number = 10) => {
-    return axios.get<Song[]>(`${PUBLIC_URL}/songs/trending?limit=${limit}`);
+    return axios.get<Song[]>(`${PUBLIC_URL}/songs/trending?limit=${limit}`),{
+         headers: {
+            "ngrok-skip-browser-warning": "69420" // <--- QUAN TRỌNG: Thêm dòng này
+        }
+    };
 };
 
 /**
  * Tìm kiếm bài hát công khai (Cho User)
  */
 export const searchPublicSongs = (query: string) => {
-    return axios.get<Song[]>(`${PUBLIC_URL}/search?query=${encodeURIComponent(query)}`);
+    return axios.get<Song[]>(`${PUBLIC_URL}/search?query=${encodeURIComponent(query)}`),{
+         headers: {
+            "ngrok-skip-browser-warning": "69420" // <--- QUAN TRỌNG: Thêm dòng này
+        }
+    };
 };
 
 /**
  * Tăng lượt nghe (Gọi khi User bấm Play)
  */
 export const incrementViewCount = (songId: string) => {
-    return axios.post(`${PUBLIC_URL}/songs/${songId}/view`);
+    return axios.post(`${PUBLIC_URL}/songs/${songId}/view`),{
+         headers: {
+            "ngrok-skip-browser-warning": "69420" // <--- QUAN TRỌNG: Thêm dòng này
+        }
+    };
 };
