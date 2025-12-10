@@ -28,7 +28,7 @@ export interface JwtResponse {
 
 export const registerUser = (data: RegisterRequest) =>
   axios.post<JwtResponse>(`${BASE_URL}/register`, data, {
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "69420" },
     withCredentials: true
   });
 
@@ -37,7 +37,8 @@ export const registerUser = (data: RegisterRequest) =>
 export const loginUser = (data: LoginRequest) =>
   axios.post<JwtResponse>(`${BASE_URL}/login`, data, {
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      "ngrok-skip-browser-warning": "69420"
     },
     withCredentials: true // Quan trọng để tránh lỗi CORS 403
   });
