@@ -46,23 +46,29 @@ export function NowPlayingPage({ currentSong, onPlaySong, onPlaybackStatusChange
     const audio = audioRef.current;
     if (!audio) return;
 
-    if (currentSong?.streamUrl) {
-      if (audio.src !== currentSong.streamUrl) {
-        audio.src = currentSong.streamUrl;
-        audio.load();
-      }
-      
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => setIsPlaying(true))
-          .catch(() => setIsPlaying(false)); // Nếu tự động phát lỗi, đảm bảo state là false
-      }
-    } else {
+    if (!currentSong?.streamUrl) {
       audio.pause();
       setIsPlaying(false);
+      return;
     }
-  }, [currentSong]); // Chỉ chạy khi bài hát thay đổi
+
+    if (audio.src !== currentSong.streamUrl) {
+      audio.src = currentSong.streamUrl;
+      audio.load();
+    }
+
+    const onCanPlay = () => {
+      audio.play()
+        .then(() => setIsPlaying(true))
+        .catch(() => setIsPlaying(false));
+    };
+
+    audio.addEventListener('canplay', onCanPlay);
+
+    return () => {
+      audio.removeEventListener('canplay', onCanPlay);
+    };
+  }, [currentSong]);
 
   // Hàm xử lý nút Play/Pause chính
   const handlePlayPause = () => {
@@ -94,7 +100,7 @@ export function NowPlayingPage({ currentSong, onPlaySong, onPlaybackStatusChange
     //   setIsLiked(!newLikedState); // Hoàn tác nếu lỗi
     // }
   };
-  
+
 
   // Dữ liệu mẫu với streamUrl để test
   const queueSongs: ExtendedSong[] = [
