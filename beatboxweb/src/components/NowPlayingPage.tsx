@@ -171,6 +171,7 @@ export function NowPlayingPage({ currentSong, onPlaySong, onPlaybackStatusChange
       <audio
         ref={audioRef}
         onEnded={handleAudioEnded}
+        crossOrigin="anonymous"
         className="hidden"
       />
 
