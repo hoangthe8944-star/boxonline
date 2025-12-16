@@ -8,23 +8,22 @@ interface MusicPlayerProps {
   isPlaying: boolean;
   onTogglePlay: () => void;
   // ✅ Thêm 2 props mới để xử lý next/prev từ player
-  onNextSong: () => void; 
+  onNextSong: () => void;
   onPrevSong: () => void;
   onClickPlayer: () => void;
 }
 
-export function MusicPlayer({ 
-    currentSong, 
-    isPlaying, 
-    onTogglePlay, 
-    onNextSong, 
-    onPrevSong,
-    onClickPlayer 
+export function MusicPlayer({
+  currentSong,
+  onTogglePlay,
+  onNextSong,
+  onPrevSong,
+  onClickPlayer
 }: MusicPlayerProps) {
-  
+
   // ✅ BƯỚC 1: STATE VÀ REF
   // -------------------------------------------------------------------
-  
+
   // Ref để giữ đối tượng Audio, giúp nó tồn tại qua các lần re-render mà không bị tạo lại
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -32,7 +31,8 @@ export function MusicPlayer({
   const [progress, setProgress] = useState(0); // % progress
   const [volume, setVolume] = useState(70); // % volume
   const [currentTime, setCurrentTime] = useState(0); // giây hiện tại
-  const [duration, setDuration] = useState(0); // tổng số giây
+  const [duration, setDuration] = useState(0); // tổng số giầy
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const [isLiked, setIsLiked] = useState(false); // Giữ nguyên state này
 
@@ -47,7 +47,7 @@ export function MusicPlayer({
       if (audioRef.current) {
         audioRef.current.pause();
       }
-      
+
       // Tạo một đối tượng Audio mới
       const newAudio = new Audio(currentSong.streamUrl);
       audioRef.current = newAudio;
@@ -55,7 +55,7 @@ export function MusicPlayer({
 
       // Lắng nghe các sự kiện từ thẻ Audio
       const audio = audioRef.current;
-      
+
       // Sự kiện: Khi thời gian phát thay đổi -> CẬP NHẬT THANH PROGRESS
       const handleTimeUpdate = () => {
         setCurrentTime(audio.currentTime);
@@ -71,7 +71,7 @@ export function MusicPlayer({
       const handleSongEnd = () => {
         onNextSong();
       };
-      
+
       audio.addEventListener('timeupdate', handleTimeUpdate);
       audio.addEventListener('loadedmetadata', handleLoadedMetadata);
       audio.addEventListener('ended', handleSongEnd);
@@ -132,9 +132,20 @@ export function MusicPlayer({
     const seconds = Math.floor(timeInSeconds % 60);
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
+  const handlePlayPause = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isPlaying) {
+      audio.pause();
+      setIsPlaying(false);
+    } else {
+      audio.play().then(() => setIsPlaying(true));
+    }
+  };
 
   // -------------------------------------------------------------------
-  
+
   if (!currentSong) {
     return null;
   }
@@ -147,7 +158,7 @@ export function MusicPlayer({
         {/* Main Player Controls */}
         <div className="flex items-center justify-between gap-2 sm:gap-4 mb-2">
           {/* Song Info - Clickable */}
-          <button 
+          <button
             onClick={onClickPlayer}
             className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0 hover:opacity-80 transition-opacity text-left"
           >
@@ -171,7 +182,7 @@ export function MusicPlayer({
               <SkipBack className="w-5 h-5" />
             </button>
             <button
-              onClick={onTogglePlay}
+              onClick={handlePlayPause}
               className="p-2 sm:p-3 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/30 transition-all"
             >
               {isPlaying ? (
@@ -192,9 +203,8 @@ export function MusicPlayer({
           <div className="hidden md:flex items-center gap-4 flex-shrink-0">
             <button
               onClick={() => setIsLiked(!isLiked)}
-              className={`transition-colors ${
-                isLiked ? 'text-cyan-400' : 'text-blue-300 hover:text-white'
-              }`}
+              className={`transition-colors ${isLiked ? 'text-cyan-400' : 'text-blue-300 hover:text-white'
+                }`}
             >
               <Heart className="w-5 h-5" fill={isLiked ? 'currentColor' : 'none'} />
             </button>
@@ -224,7 +234,7 @@ export function MusicPlayer({
               onChange={handleProgressChange} // <--- KẾT NỐI HÀM
               className="w-full h-1 bg-blue-800/50 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-400 [&::-webkit-slider-thumb]:cursor-pointer hover:[&::-webkit-slider-thumb]:bg-cyan-300"
             />
-            <div 
+            <div
               className="absolute top-0 left-0 h-1 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full pointer-events-none"
               style={{ width: `${progress}%` }}
             />

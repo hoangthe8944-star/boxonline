@@ -83,10 +83,10 @@ export function NowPlayingPage({ currentSong, onPlaySong, onPlaybackStatusChange
   };
 
   // Hàm xử lý khi bài hát kết thúc tự nhiên
-  const handleAudioEnded = () => {
-    setIsPlaying(false);
-    // TODO: Thêm logic tự động chuyển bài ở đây
-  };
+  // const handleAudioEnded = () => {
+  //   setIsPlaying(false);
+  //   // TODO: Thêm logic tự động chuyển bài ở đây
+  // };
 
   // Hàm xử lý API like/unlike (ví dụ)
   const handleToggleLike = async () => {
@@ -167,12 +167,12 @@ export function NowPlayingPage({ currentSong, onPlaySong, onPlaybackStatusChange
   return (
     <div className="h-full flex flex-col lg:flex-row relative">
       {/* Thẻ audio ẩn, dùng để điều khiển việc phát nhạc */}
-      <audio
+      {/* <audio
         ref={audioRef}
         onEnded={handleAudioEnded}
         crossOrigin="anonymous"
         className="hidden"
-      />
+      /> */}
 
       {/* Left Side - Album Art & Info & Lyrics */}
       <div className="flex-1 flex flex-col px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 bg-gradient-to-b from-blue-600/40 to-transparent overflow-y-auto pb-24 lg:pb-12">
