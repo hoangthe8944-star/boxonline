@@ -21,12 +21,13 @@ interface ExtendedSong extends Song {
 // Định nghĩa props, bao gồm cả hàm callback mới
 interface NowPlayingPageProps {
   currentSong: ExtendedSong | null;
+  isPlaying: boolean;
   onPlaySong: (song: Song) => void;
   onPlaybackStatusChange: (isPlaying: boolean) => void;
   onTogglePlay: () => void;
 }
 
-export function NowPlayingPage({ currentSong, onPlaySong, onPlaybackStatusChange, onTogglePlay }: NowPlayingPageProps) {
+export function NowPlayingPage({ currentSong, onPlaySong, onPlaybackStatusChange, isPlaying, onTogglePlay }: NowPlayingPageProps) {
   // State isPlaying này chỉ là state nội bộ, nhưng nó sẽ được "báo cáo" lên cha
   // const [isPlaying, setIsPlaying] = useState(false);
   const [isLiked, setIsLiked] = useState(false);

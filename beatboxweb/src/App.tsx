@@ -101,8 +101,21 @@ export default function App() {
 
   // --- GIAO DIỆN CHÍNH (KHI ĐÃ LOGIN) ---
   return (
-  <div className="flex h-screen bg-gradient-to-br from-blue-700 via-cyan-600 to-cyan-400 text-white overflow-hidden">
-      {/* ... (Sidebar và Header giữ nguyên) ... */}
+    <div className="flex h-screen bg-gradient-to-br from-blue-700 via-cyan-600 to-cyan-400 text-white overflow-hidden">
+      <button
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-blue-900/80 backdrop-blur-lg lg:hidden"
+      >
+        <Menu className="w-6 h-6" />
+      </button>
+
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       <Sidebar 
         currentPage={currentPage} 
         onNavigate={(page) => {
@@ -116,6 +129,7 @@ export default function App() {
           setIsSidebarOpen(false);
         }}
       />
+
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header 
           searchQuery={searchQuery}
@@ -124,7 +138,6 @@ export default function App() {
         />
 
         <main className="flex-1 overflow-y-auto pb-32 lg:pb-28">
-          {/* Truyền hàm handlePlaySong xuống các trang có danh sách bài hát */}
           {currentPage === 'home' && <HomePage onPlaySong={handlePlaySong} />}
           {currentPage === 'library' && <LibraryPage onPlaySong={handlePlaySong} />}
           {currentPage === 'playlists' && <PlaylistsPage onPlaySong={handlePlaySong} />}
@@ -132,10 +145,10 @@ export default function App() {
           
           {currentPage === 'nowplaying' && 
             <NowPlayingPage 
-              currentSong={currentSong}
-              isPlaying={isPlaying} // <--- Truyền state isPlaying xuống
-              onTogglePlay={handleTogglePlay} // <--- Truyền hàm toggle xuống
-              onPlaySong={handlePlaySong} // Để phát bài khác từ danh sách chờ
+              currentSong={currentSong} 
+              onPlaySong={handlePlaySong}
+              // Truyền hàm callback xuống để NowPlayingPage "báo cáo" trạng thái
+              onPlaybackStatusChange={setIsActuallyPlaying} 
             />
           }
 
@@ -144,10 +157,11 @@ export default function App() {
 
         <MusicPlayer 
           currentSong={currentSong}
-          isPlaying={isPlaying} // <--- Truyền state isPlaying xuống
-          onTogglePlay={handleTogglePlay} // <--- Truyền hàm toggle xuống
+          // MusicPlayer giờ đây nhận trạng thái phát nhạc đáng tin cậy
+          isPlaying={isActuallyPlaying}
+          // Việc toggle play/pause sẽ được xử lý bên trong NowPlayingPage
+          // onTogglePlay giờ không cần thiết ở đây nữa
           onClickPlayer={() => currentSong && setCurrentPage('nowplaying')}
-          // Thêm các hàm xử lý next/prev sau này
         />
       </div>
     </div>
