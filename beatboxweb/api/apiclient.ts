@@ -64,6 +64,13 @@ export const getSongInfoAndIncrementView = (songId: string) => {
     });
 };
 
+export const getAllPublicSongs = () => {
+    return axios.get<Song[]>(`${PUBLIC_URL}/songs/all`, {
+         headers: {
+            "ngrok-skip-browser-warning": "true"
+        }
+    });
+};
 
 /**
  * [ĐÃ XÓA] Hàm incrementViewCount không còn cần thiết.
