@@ -1,20 +1,17 @@
 import { Play } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-
-// Import API (Lưu ý: Đảm bảo đường dẫn này đúng với file bạn đã tạo)
-// Nếu bạn gộp vào file axiosClient.ts thì sửa đường dẫn lại nhé
 import { searchPublicSongs } from '../../api/apiclient';
 
 // Định nghĩa Type Song cho Giao diện
 export interface Song {
   id: string;
   title: string;
-  artist: string; 
-  album: string;  
-  cover: string;  
-  duration: string; 
-  streamUrl?: string; 
+  artist: string;
+  album: string;
+  cover: string;
+  duration: string;
+  streamUrl?: string;
 }
 
 interface SearchPageProps {
@@ -23,10 +20,8 @@ interface SearchPageProps {
 }
 
 export function SearchPage({ searchQuery, onPlaySong }: SearchPageProps) {
-  // State lưu kết quả tìm kiếm từ API
   const [results, setResults] = useState<Song[]>([]);
-  const [loading, setLoading] = useState(false); // Thêm trạng thái loading để UX tốt hơn
-
+  const [loading, setLoading] = useState(false);
   // Dữ liệu giả cho Categories
   const categories = [
     { name: 'Pop', color: 'from-pink-500 to-rose-500', cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&q=80&w=300' },
@@ -41,12 +36,11 @@ export function SearchPage({ searchQuery, onPlaySong }: SearchPageProps) {
 
   // --- LOGIC CALL API ---
   useEffect(() => {
-    // Hàm format thời gian (Giây -> mm:ss)
     const formatDuration = (seconds: number) => {
-        if (!seconds) return "00:00";
-        const m = Math.floor(seconds / 60);
-        const s = seconds % 60;
-        return `${m}:${s < 10 ? '0' : ''}${s}`;
+      if (!seconds) return "00:00";
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      return `${m}:${s < 10 ? '0' : ''}${s}`;
     };
 
     const fetchSongs = async () => {
@@ -54,57 +48,40 @@ export function SearchPage({ searchQuery, onPlaySong }: SearchPageProps) {
         setResults([]);
         return;
       }
-
-      setLoading(true); // Bắt đầu tải
+      setLoading(true);
 
       try {
         const response = await searchPublicSongs(searchQuery);
-        
-        // --- DEBUG: Soi dữ liệu trả về ---
         console.log("API Result:", response.data);
 
-        // --- CODE PHÒNG THỦ: Xác định đúng mảng dữ liệu ---
-        // Backend có thể trả về mảng trực tiếp [] HOẶC object { result: [] }
-        // Dòng này giúp lấy đúng mảng bất chấp cấu trúc
-        let dataArray: any[] = [];
-        
-        if (Array.isArray(response.data)) {
-            dataArray = response.data;
-        } else if (response.data && Array.isArray((response.data as any).result)) {
-            dataArray = (response.data as any).result;
-        } else if (response.data && Array.isArray((response.data as any).content)) {
-            // Trường hợp backend dùng phân trang (Spring Boot)
-            dataArray = (response.data as any).content;
-        }
+        // ✅ Gọn gàng hơn: Luôn đảm bảo dataArray là một mảng
+        const dataArray = Array.isArray(response.data) ? response.data : [];
 
-        // Map dữ liệu
         const mappedSongs: Song[] = dataArray.map((item: any) => ({
-            id: item.id,
-            title: item.title,
-            artist: item.artistName || "Unknown Artist",
-            album: item.albumName || "Single",
-            cover: item.coverUrl || "https://placehold.co/400", // Fallback ảnh nếu null
-            duration: formatDuration(item.duration),
-            streamUrl: item.streamUrl
+          id: item.id,
+          title: item.title,
+          artist: item.artistName || "Unknown Artist",
+          album: item.albumName || "Single",
+          cover: item.coverUrl || "https://placehold.co/400",
+          duration: formatDuration(item.duration),
+          streamUrl: item.streamUrl
         }));
-
         setResults(mappedSongs);
 
       } catch (error) {
         console.error("Lỗi tìm kiếm:", error);
-        setResults([]); // Lỗi thì reset về rỗng để không nổ app
+        setResults([]);
       } finally {
-        setLoading(false); // Kết thúc tải dù thành công hay thất bại
+        setLoading(false);
       }
     };
 
-    // Debounce 500ms
-    const timeoutId = setTimeout(() => {
-        fetchSongs();
-    }, 500);
-
+    const timeoutId = setTimeout(() => fetchSongs(), 500);
     return () => clearTimeout(timeoutId);
   }, [searchQuery]);
+
+  // Kiểm tra xem có phải là kết quả của một nghệ sĩ duy nhất không
+  const isSingleArtistResult = results.length > 0 && results.every(song => song.artist === results[0].artist);
 
   return (
     <div className="px-8 py-6 space-y-8">
@@ -112,10 +89,10 @@ export function SearchPage({ searchQuery, onPlaySong }: SearchPageProps) {
         /* Search Results */
         <div>
           <div className="flex items-center gap-4 mb-4">
-             <h2 className="text-white text-2xl font-bold">Kết quả tìm kiếm cho "{searchQuery}"</h2>
-             {loading && <span className="text-cyan-400 animate-pulse text-sm">Đang tìm...</span>}
+            <h2 className="text-white text-2xl font-bold">Kết quả tìm kiếm cho "{searchQuery}"</h2>
+            {loading && <span className="text-cyan-400 animate-pulse text-sm">Đang tìm...</span>}
           </div>
-          
+
           {results.length > 0 ? (
             <>
               {/* Top Result */}
@@ -143,7 +120,10 @@ export function SearchPage({ searchQuery, onPlaySong }: SearchPageProps) {
 
               {/* Songs Results List */}
               <div>
-                <h3 className="mb-4 text-blue-300 font-semibold uppercase tracking-wider text-sm">Bài hát</h3>
+                {/* ✅ Tiêu đề thông minh */}
+                <h3 className="mb-4 text-blue-300 font-semibold uppercase tracking-wider text-sm">
+                  {isSingleArtistResult ? `Bài hát của ${results[0].artist}` : 'Bài hát'}
+                </h3>
                 <div className="space-y-2">
                   {results.map((song, index) => (
                     <button
@@ -177,10 +157,10 @@ export function SearchPage({ searchQuery, onPlaySong }: SearchPageProps) {
             </>
           ) : (
             !loading && (
-                <div className="text-gray-400 flex flex-col items-center justify-center py-20">
-                    <p className="text-xl">Không tìm thấy bài hát nào khớp với từ khóa.</p>
-                    <p className="text-sm mt-2 text-gray-600">Hãy thử tìm tên bài hát hoặc nghệ sĩ khác xem sao.</p>
-                </div>
+              <div className="text-gray-400 flex flex-col items-center justify-center py-20">
+                <p className="text-xl">Không tìm thấy bài hát nào khớp với từ khóa.</p>
+                <p className="text-sm mt-2 text-gray-600">Hãy thử tìm tên bài hát hoặc nghệ sĩ khác xem sao.</p>
+              </div>
             )
           )}
         </div>

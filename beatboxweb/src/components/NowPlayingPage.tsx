@@ -3,7 +3,6 @@ import type { Song } from '../App'; // Giả sử Song ở App có streamUrl, n�
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useState, useRef, useEffect } from 'react';
 // Giả định file api/apiclient có cả 2 hàm này
-import { incrementViewCount } from '../../api/apiclient';
 
 // LƯU Ý: Đảm bảo file `api/apiclient.ts` của bạn có export hàm `toggleLikeStatus` như sau:
 /*
