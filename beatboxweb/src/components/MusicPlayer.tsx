@@ -15,7 +15,6 @@ interface MusicPlayerProps {
 
 export function MusicPlayer({
   currentSong,
-  onTogglePlay,
   onNextSong,
   onPrevSong,
   onClickPlayer

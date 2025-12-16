@@ -37,7 +37,7 @@ export default function App() {
   // State quản lý trang nội dung
   const [currentPage, setCurrentPage] = useState<'home' | 'library' | 'playlists' | 'search' | 'nowplaying' | 'profile'>('home');
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
-  
+
   // ========================================================================
   // === "NGUỒN CHÂN LÝ DUY NHẤT" VỀ TRẠNG THÁI PHÁT NHẠC ===
   // State này sẽ được cập nhật bởi NowPlayingPage thông qua callback.
@@ -46,7 +46,7 @@ export default function App() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  
+
   // State quản lý xác thực
   const [token, setToken] = useState<string | null>(localStorage.getItem("accessToken"));
   const [authView, setAuthView] = useState<'login' | 'register'>('login');
@@ -57,14 +57,14 @@ export default function App() {
     setCurrentSong(song);
     setCurrentPage('nowplaying');
   };
-  
+
   // Các hàm xử lý xác thực
   const handleAuthSuccess = (newToken: string) => {
     setToken(newToken);
   };
 
   const handleLogout = () => {
-    logout(); 
+    logout();
     setToken(null);
     setAuthView('login');
     setCurrentSong(null);
@@ -82,16 +82,16 @@ export default function App() {
     if (authView === 'register') {
       return (
         <div className={authBackgroundClass}>
-          <RegisterForm 
+          <RegisterForm
             onRegisterSuccess={handleAuthSuccess}
             onSwitchToLogin={() => setAuthView('login')}
           />
         </div>
       );
-    } 
+    }
     return (
       <div className={authBackgroundClass}>
-        <LoginForm 
+        <LoginForm
           onLoginSuccess={handleAuthSuccess}
           onSwitchToRegister={() => setAuthView('register')}
         />
@@ -116,12 +116,12 @@ export default function App() {
         />
       )}
 
-      <Sidebar 
-        currentPage={currentPage} 
+      <Sidebar
+        currentPage={currentPage}
         onNavigate={(page) => {
           setCurrentPage(page);
           setIsSidebarOpen(false);
-        }} 
+        }}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
         onProfileClick={() => {
@@ -131,7 +131,7 @@ export default function App() {
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header 
+        <Header
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           onSearch={() => setCurrentPage('search')}
@@ -142,20 +142,19 @@ export default function App() {
           {currentPage === 'library' && <LibraryPage onPlaySong={handlePlaySong} />}
           {currentPage === 'playlists' && <PlaylistsPage onPlaySong={handlePlaySong} />}
           {currentPage === 'search' && <SearchPage searchQuery={searchQuery} onPlaySong={handlePlaySong} />}
-          
-          {currentPage === 'nowplaying' && 
-            <NowPlayingPage 
-              currentSong={currentSong} 
-              onPlaySong={handlePlaySong}
-              // Truyền hàm callback xuống để NowPlayingPage "báo cáo" trạng thái
-              onPlaybackStatusChange={setIsActuallyPlaying} 
+
+          {currentPage === 'nowplaying' &&
+            <NowPlayingPage
+              currentSong={currentSong}
+              isPlaying={isPlaying} // <--- Truyền state isPlaying xuống
+              onTogglePlay={handleTogglePlay} // <--- Truyền hàm toggle xuống
+              onPlaySong={handlePlaySong} // Để phát bài khác từ danh sách chờ
             />
           }
-
           {currentPage === 'profile' && <ProfilePage onLogout={handleLogout} />}
         </main>
 
-        <MusicPlayer 
+        <MusicPlayer
           currentSong={currentSong}
           // MusicPlayer giờ đây nhận trạng thái phát nhạc đáng tin cậy
           isPlaying={isActuallyPlaying}

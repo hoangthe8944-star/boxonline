@@ -95,6 +95,7 @@ export function NowPlayingPage({ currentSong, onPlaySong, onPlaybackStatusChange
     if (!currentSong) return;
     const newLikedState = !isLiked;
     setIsLiked(newLikedState);
+    
     // try {
     //   await toggleLikeStatus(currentSong.id, newLikedState);
     // } catch (error) {
