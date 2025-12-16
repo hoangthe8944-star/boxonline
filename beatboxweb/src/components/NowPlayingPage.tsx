@@ -23,64 +23,65 @@ interface NowPlayingPageProps {
   currentSong: ExtendedSong | null;
   onPlaySong: (song: Song) => void;
   onPlaybackStatusChange: (isPlaying: boolean) => void;
+  onTogglePlay: () => void;
 }
 
-export function NowPlayingPage({ currentSong, onPlaySong, onPlaybackStatusChange }: NowPlayingPageProps) {
+export function NowPlayingPage({ currentSong, onPlaySong, onPlaybackStatusChange, onTogglePlay }: NowPlayingPageProps) {
   // State isPlaying này chỉ là state nội bộ, nhưng nó sẽ được "báo cáo" lên cha
-  const [isPlaying, setIsPlaying] = useState(false);
+  // const [isPlaying, setIsPlaying] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isQueueOpen, setIsQueueOpen] = useState(false);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  // const audioRef = useRef<HTMLAudioElement>(null);
 
   // ========================================================================
   // === CƠ CHẾ BÁO CÁO TRẠNG THÁI LÊN COMPONENT CHA ===
   // Mỗi khi `isPlaying` nội bộ thay đổi, gọi callback để cập nhật App.tsx
-  useEffect(() => {
-    onPlaybackStatusChange(isPlaying);
-  }, [isPlaying, onPlaybackStatusChange]);
-  // ========================================================================
+  // useEffect(() => {
+  //   onPlaybackStatusChange(isPlaying);
+  // }, [isPlaying, onPlaybackStatusChange]);
+  // // ========================================================================
 
   // useEffect để xử lý việc load và tự động phát nhạc khi bài hát thay đổi
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
+  // useEffect(() => {
+  //   const audio = audioRef.current;
+  //   if (!audio) return;
 
-    if (!currentSong?.streamUrl) {
-      audio.pause();
-      setIsPlaying(false);
-      return;
-    }
+  //   if (!currentSong?.streamUrl) {
+  //     audio.pause();
+  //     setIsPlaying(false);
+  //     return;
+  //   }
 
-    if (audio.src !== currentSong.streamUrl) {
-      audio.src = currentSong.streamUrl;
-      audio.load();
-    }
+  //   if (audio.src !== currentSong.streamUrl) {
+  //     audio.src = currentSong.streamUrl;
+  //     audio.load();
+  //   }
 
-    const onCanPlay = () => {
-      audio.play()
-        .then(() => setIsPlaying(true))
-        .catch(() => setIsPlaying(false));
-    };
+  //   const onCanPlay = () => {
+  //     audio.play()
+  //       .then(() => setIsPlaying(true))
+  //       .catch(() => setIsPlaying(false));
+  //   };
 
-    audio.addEventListener('canplay', onCanPlay);
+  //   audio.addEventListener('canplay', onCanPlay);
 
-    return () => {
-      audio.removeEventListener('canplay', onCanPlay);
-    };
-  }, [currentSong]);
+  //   return () => {
+  //     audio.removeEventListener('canplay', onCanPlay);
+  //   };
+  // }, [currentSong]);
 
   // Hàm xử lý nút Play/Pause chính
-  const handlePlayPause = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
+  // const handlePlayPause = () => {
+  //   const audio = audioRef.current;
+  //   if (!audio) return;
 
-    if (isPlaying) {
-      audio.pause();
-      setIsPlaying(false);
-    } else {
-      audio.play().then(() => setIsPlaying(true));
-    }
-  };
+  //   if (isPlaying) {
+  //     audio.pause();
+  //     setIsPlaying(false);
+  //   } else {
+  //     audio.play().then(() => setIsPlaying(true));
+  //   }
+  // };
 
   // Hàm xử lý khi bài hát kết thúc tự nhiên
   // const handleAudioEnded = () => {
@@ -208,7 +209,7 @@ export function NowPlayingPage({ currentSong, onPlaySong, onPlaybackStatusChange
             {/* Action Buttons */}
             <div className="flex items-center gap-2 sm:gap-3">
               <button
-                onClick={handlePlayPause}
+                onClick={onTogglePlay}
                 className="flex items-center justify-center gap-2 flex-1 py-2.5 sm:py-3 bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-full hover:scale-105 transition-transform shadow-lg shadow-cyan-400/20"
               >
                 {isPlaying ? (

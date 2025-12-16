@@ -29,7 +29,7 @@ export function MusicPlayer({
 
   // State cho thanh trượt và thời gian (giờ sẽ được cập nhật real-time)
   const [progress, setProgress] = useState(0); // % progress
-  const [volume, setVolume] = useState(70); // % volume
+  const [volume, setVolume] = useState(80); // % volume
   const [currentTime, setCurrentTime] = useState(0); // giây hiện tại
   const [duration, setDuration] = useState(0); // tổng số giầy
   const [isPlaying, setIsPlaying] = useState(false);
