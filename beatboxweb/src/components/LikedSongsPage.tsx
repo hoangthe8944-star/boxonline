@@ -1,70 +1,70 @@
 import { Play, Clock, Heart } from 'lucide-react';
-import type { SongApp } from '../App';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import type { Song } from '../../api/apiclient';
 
 interface LikedSongsPageProps {
-  onPlaySong: (song: SongApp) => void;
+  onPlaySong: (song: Song) => void;
 }
 
 export function LikedSongsPage({ onPlaySong }: LikedSongsPageProps) {
   // Mock data for liked songs
-  const likedSongs: SongApp[] = [
-    {
-      id: 'l1',
-      title: 'Cruel Summer',
-      artist: 'Taylor Swift',
-      album: 'Lover',
-      duration: '2:58',
-      coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwb3AlMjBtdXNpY3xlbnwxfHx8fDE3NjQ0MTc3Njh8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'l2',
-      title: 'Starboy',
-      artist: 'The Weeknd ft. Daft Punk',
-      album: 'Starboy',
-      duration: '3:50',
-      coverUrl: 'https://images.unsplash.com/photo-1644855640845-ab57a047320e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtdXNpYyUyMGFsYnVtJTIwY292ZXJ8ZW58MXx8fHwxNzY0NDEwNDg0fDA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'l3',
-      title: 'Flowers',
-      artist: 'Miley Cyrus',
-      album: 'Endless Summer Vacation',
-      duration: '3:20',
-      coverUrl: 'https://images.unsplash.com/photo-1624703307604-744ec383cbf4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVjdHJvbmljJTIwbXVzaWN8ZW58MXx8fHwxNzY0NDEwODgyfDA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'l4',
-      title: 'Vampire',
-      artist: 'Olivia Rodrigo',
-      album: 'GUTS',
-      duration: '3:39',
-      coverUrl: 'https://images.unsplash.com/photo-1701506516420-3ef4b27413c9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb25jZXJ0JTIwbmlnaHR8ZW58MXx8fHwxNzY0NDgzMjk4fDA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'l5',
-      title: 'Dance The Night',
-      artist: 'Dua Lipa',
-      album: 'Barbie The Album',
-      duration: '2:56',
-      coverUrl: 'https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxqYXp6JTIwbXVzaWN8ZW58MXx8fHwxNzY0Mzc2NTQ5fDA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'l6',
-      title: 'Die For You',
-      artist: 'The Weeknd',
-      album: 'Starboy',
-      duration: '4:20',
-      coverUrl: 'https://images.unsplash.com/photo-1604514288114-3851479df2f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb2NrJTIwYmFuZHxlbnwxfHx8fDE3NjQ0MTU0MjR8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'l7',
-      title: 'Kill Bill',
-      artist: 'SZA',
-      album: 'SOS',
-      duration: '2:33',
-      coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwb3AlMjBtdXNpY3xlbnwxfHx8fDE3NjQ0MTc3Njh8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
+  const likedSongs: Song[] = [
+    // {
+    //   id: 'l1',
+    //   title: 'Cruel Summer',
+    //   artist: 'Taylor Swift',
+    //   album: 'Lover',
+    //   duration: '2:58',
+    //   coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwb3AlMjBtdXNpY3xlbnwxfHx8fDE3NjQ0MTc3Njh8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
+    // {
+    //   id: 'l2',
+    //   title: 'Starboy',
+    //   artist: 'The Weeknd ft. Daft Punk',
+    //   album: 'Starboy',
+    //   duration: '3:50',
+    //   coverUrl: 'https://images.unsplash.com/photo-1644855640845-ab57a047320e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtdXNpYyUyMGFsYnVtJTIwY292ZXJ8ZW58MXx8fHwxNzY0NDEwNDg0fDA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
+    // {
+    //   id: 'l3',
+    //   title: 'Flowers',
+    //   artist: 'Miley Cyrus',
+    //   album: 'Endless Summer Vacation',
+    //   duration: '3:20',
+    //   coverUrl: 'https://images.unsplash.com/photo-1624703307604-744ec383cbf4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVjdHJvbmljJTIwbXVzaWN8ZW58MXx8fHwxNzY0NDEwODgyfDA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
+    // {
+    //   id: 'l4',
+    //   title: 'Vampire',
+    //   artist: 'Olivia Rodrigo',
+    //   album: 'GUTS',
+    //   duration: '3:39',
+    //   coverUrl: 'https://images.unsplash.com/photo-1701506516420-3ef4b27413c9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb25jZXJ0JTIwbmlnaHR8ZW58MXx8fHwxNzY0NDgzMjk4fDA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
+    // {
+    //   id: 'l5',
+    //   title: 'Dance The Night',
+    //   artist: 'Dua Lipa',
+    //   album: 'Barbie The Album',
+    //   duration: '2:56',
+    //   coverUrl: 'https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxqYXp6JTIwbXVzaWN8ZW58MXx8fHwxNzY0Mzc2NTQ5fDA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
+    // {
+    //   id: 'l6',
+    //   title: 'Die For You',
+    //   artist: 'The Weeknd',
+    //   album: 'Starboy',
+    //   duration: '4:20',
+    //   coverUrl: 'https://images.unsplash.com/photo-1604514288114-3851479df2f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb2NrJTIwYmFuZHxlbnwxfHx8fDE3NjQ0MTU0MjR8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
+    // {
+    //   id: 'l7',
+    //   title: 'Kill Bill',
+    //   artist: 'SZA',
+    //   album: 'SOS',
+    //   duration: '2:33',
+    //   coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwb3AlMjBtdXNpY3xlbnwxfHx8fDE3NjQ0MTc3Njh8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
   ];
 
   return (
@@ -132,13 +132,13 @@ export function LikedSongsPage({ onPlaySong }: LikedSongsPageProps) {
                       {song.title}
                     </span>
                     <span className="text-sm text-blue-300 truncate group-hover:text-white/70">
-                      {song.artist}
+                      {song.artistName}
                     </span>
                   </div>
                 </div>
 
                 <div className="hidden sm:flex items-center text-sm text-blue-300 truncate">
-                  <span className="group-hover:text-white/70 truncate">{song.album}</span>
+                  <span className="group-hover:text-white/70 truncate">{song.albumName}</span>
                 </div>
 
                 <div className="text-sm text-blue-300 flex items-center justify-end pr-2 group-hover:text-white/70">

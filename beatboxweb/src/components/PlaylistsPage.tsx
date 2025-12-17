@@ -1,5 +1,5 @@
 import { Play, Plus, Search, Grid, List, Music, User, Globe, Lock } from 'lucide-react';
-import type { SongApp, Playlist } from '../App';
+import type { Playlist } from '../App';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useState } from 'react';
 import { Input } from './ui/input';
@@ -12,9 +12,10 @@ import {
   SelectValue,
 } from "./ui/select";
 import { Button } from './ui/button';
+import type { Song } from '../../api/apiclient';
 
 interface PlaylistsPageProps {
-  onPlaySong: (song: SongApp) => void;
+  onPlaySong: (song: Song) => void;
   onCreateClick?: () => void;
 }
 

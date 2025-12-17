@@ -21,15 +21,15 @@ import type { Song } from '../api/apiclient';
 import './index.css';
 
 
-export interface SongApp {
-  id: string;
-  title: string;
-  artist: string;
-  album: string;
-  duration: string;
-  coverUrl: string;
-  streamUrl?: string; // Quan trọng: Bao gồm cả streamUrl
-}
+// export interface SongApp {
+//   id: string;
+//   title: string;
+//   artist: string;
+//   album: string;
+//   duration: string;
+//   coverUrl: string;
+//   streamUrl?: string; // Quan trọng: Bao gồm cả streamUrl
+// }
 
 export interface Playlist {
   id: string;

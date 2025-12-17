@@ -71,6 +71,15 @@ export const getAllPublicSongs = () => {
         }
     });
 };
+export const getRecentlyPlayedSongs = () => {
+    const token = localStorage.getItem("accessToken");
+    return axios.get<Song[]>(`${PUBLIC_URL}/history/songs`, { // Giả sử endpoint của bạn là thế này
+         headers: {
+            "ngrok-skip-browser-warning": "true",
+            "Authorization": `Bearer ${token}` // Endpoint này yêu cầu xác thực
+        }
+    });
+};
 
 /**
  * [ĐÃ XÓA] Hàm incrementViewCount không còn cần thiết.

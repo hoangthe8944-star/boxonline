@@ -1,173 +1,173 @@
 import { Music, Heart, Clock, ListMusic } from 'lucide-react';
-import type { SongApp } from '../App';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import type { Song } from '../../api/apiclient';
 
 interface LibraryPageProps {
-  onPlaySong: (song: SongApp) => void;
+  onPlaySong: (song: Song) => void;
 }
 
 export function LibraryPage({ onPlaySong }: LibraryPageProps) {
-  const likedSongs: SongApp[] = [
-    {
-      id: 'l1',
-      title: 'Shape of You',
-      artist: 'Ed Sheeran',
-      album: '÷ (Divide)',
-      duration: '3:54',
-      coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwb3AlMjBtdXNpY3xlbnwxfHx8fDE3NjQ0MTc3Njh8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'l2',
-      title: 'Someone Like You',
-      artist: 'Adele',
-      album: '21',
-      duration: '4:45',
-      coverUrl: 'https://images.unsplash.com/photo-1644855640845-ab57a047320e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtdXNpYyUyMGFsYnVtJTIwY292ZXJ8ZW58MXx8fHwxNzY0NDEwNDg0fDA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'l3',
-      title: 'Wonderwall',
-      artist: 'Oasis',
-      album: "(What's the Story) Morning Glory?",
-      duration: '4:18',
-      coverUrl: 'https://images.unsplash.com/photo-1604514288114-3851479df2f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb2NrJTIwYmFuZHxlbnwxfHx8fDE3NjQ0MTU0MjR8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'l4',
-      title: 'Summertime',
-      artist: 'Ella Fitzgerald',
-      album: 'Ella and Louis',
-      duration: '4:11',
-      coverUrl: 'https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxqYXp6JTIwbXVzaWN8ZW58MXx8fHwxNzY0Mzc2NTQ5fDA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'l5',
-      title: 'One More Time',
-      artist: 'Daft Punk',
-      album: 'Discovery',
-      duration: '5:20',
-      coverUrl: 'https://images.unsplash.com/photo-1624703307604-744ec383cbf4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVjdHJvbmljJTIwbXVzaWN8ZW58MXx8fHwxNzY0NDEwODgyfDA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'l6',
-      title: 'Rolling in the Deep',
-      artist: 'Adele',
-      album: '21',
-      duration: '3:48',
-      coverUrl: 'https://images.unsplash.com/photo-1701506516420-3ef4b27413c9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb25jZXJ0JTIwbmlnaHR8ZW58MXx8fHwxNzY0NDgzMjk4fDA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'l7',
-      title: 'Thinking Out Loud',
-      artist: 'Ed Sheeran',
-      album: 'x',
-      duration: '4:41',
-      coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwb3AlMjBtdXNpY3xlbnwxfHx8fDE3NjQ0MTc3Njh8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'l8',
-      title: 'Stairway to Heaven',
-      artist: 'Led Zeppelin',
-      album: 'Led Zeppelin IV',
-      duration: '8:02',
-      coverUrl: 'https://images.unsplash.com/photo-1604514288114-3851479df2f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb2NrJTIwYmFuZHxlbnwxfHx8fDE3NjQ0MTU0MjR8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'l9',
-      title: 'Billie Jean',
-      artist: 'Michael Jackson',
-      album: 'Thriller',
-      duration: '4:54',
-      coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwb3AlMjBtdXNpY3xlbnwxfHx8fDE3NjQ0MTc3Njh8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'l10',
-      title: 'Hey Jude',
-      artist: 'The Beatles',
-      album: 'Hey Jude',
-      duration: '7:11',
-      coverUrl: 'https://images.unsplash.com/photo-1604514288114-3851479df2f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb2NrJTIwYmFuZHxlbnwxfHx8fDE3NjQ0MTU0MjR8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'l11',
-      title: 'September',
-      artist: 'Earth, Wind & Fire',
-      album: 'The Best of Earth, Wind & Fire',
-      duration: '3:35',
-      coverUrl: 'https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxqYXp6JTIwbXVzaWN8ZW58MXx8fHwxNzY0Mzc2NTQ5fDA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'l12',
-      title: 'Uptown Funk',
-      artist: 'Mark Ronson ft. Bruno Mars',
-      album: 'Uptown Special',
-      duration: '4:30',
-      coverUrl: 'https://images.unsplash.com/photo-1644855640845-ab57a047320e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtdXNpYyUyMGFsYnVtJTIwY292ZXJ8ZW58MXx8fHwxNzY0NDEwNDg0fDA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'l13',
-      title: 'Closer',
-      artist: 'The Chainsmokers ft. Halsey',
-      album: 'Collage',
-      duration: '4:04',
-      coverUrl: 'https://images.unsplash.com/photo-1624703307604-744ec383cbf4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVjdHJvbmljJTIwbXVzaWN8ZW58MXx8fHwxNzY0NDEwODgyfDA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'l14',
-      title: 'Perfect',
-      artist: 'Ed Sheeran',
-      album: '÷ (Divide)',
-      duration: '4:23',
-      coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwb3AlMjBtdXNpY3xlbnwxfHx8fDE3NjQ0MTc3Njh8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'l15',
-      title: 'Hallelujah',
-      artist: 'Jeff Buckley',
-      album: 'Grace',
-      duration: '6:53',
-      coverUrl: 'https://images.unsplash.com/photo-1604514288114-3851479df2f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb2NrJTIwYmFuZHxlbnwxfHx8fDE3NjQ0MTU0MjR8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'l16',
-      title: 'All of Me',
-      artist: 'John Legend',
-      album: 'Love in the Future',
-      duration: '4:29',
-      coverUrl: 'https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxqYXp6JTIwbXVzaWN8ZW58MXx8fHwxNzY0Mzc2NTQ5fDA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'l17',
-      title: 'Don\'t Start Now',
-      artist: 'Dua Lipa',
-      album: 'Future Nostalgia',
-      duration: '3:03',
-      coverUrl: 'https://images.unsplash.com/photo-1644855640845-ab57a047320e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtdXNpYyUyMGFsYnVtJTIwY292ZXJ8ZW58MXx8fHwxNzY0NDEwNDg0fDA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'l18',
-      title: 'Radioactive',
-      artist: 'Imagine Dragons',
-      album: 'Night Visions',
-      duration: '3:06',
-      coverUrl: 'https://images.unsplash.com/photo-1604514288114-3851479df2f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb2NrJTIwYmFuZHxlbnwxfHx8fDE3NjQ0MTU0MjR8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'l19',
-      title: 'The A Team',
-      artist: 'Ed Sheeran',
-      album: '+',
-      duration: '4:18',
-      coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwb3AlMjBtdXNpY3xlbnwxfHx8fDE3NjQ0MTc3Njh8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
-    {
-      id: 'l20',
-      title: 'Animals',
-      artist: 'Martin Garrix',
-      album: 'Animals',
-      duration: '5:04',
-      coverUrl: 'https://images.unsplash.com/photo-1624703307604-744ec383cbf4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVjdHJvbmljJTIwbXVzaWN8ZW58MXx8fHwxNzY0NDEwODgyfDA&ixlib=rb-4.1.0&q=80&w=1080',
-    },
+  const likedSongs: Song[] = [
+    // {
+    //   id: 'l1',
+    //   title: 'Shape of You',
+    //   artist: 'Ed Sheeran',
+    //   album: '÷ (Divide)',
+    //   duration: '3:54',
+    //   coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwb3AlMjBtdXNpY3xlbnwxfHx8fDE3NjQ0MTc3Njh8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
+    // {
+    //   id: 'l2',
+    //   title: 'Someone Like You',
+    //   artist: 'Adele',
+    //   album: '21',
+    //   duration: '4:45',
+    //   coverUrl: 'https://images.unsplash.com/photo-1644855640845-ab57a047320e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtdXNpYyUyMGFsYnVtJTIwY292ZXJ8ZW58MXx8fHwxNzY0NDEwNDg0fDA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
+    // {
+    //   id: 'l3',
+    //   title: 'Wonderwall',
+    //   artist: 'Oasis',
+    //   album: "(What's the Story) Morning Glory?",
+    //   duration: '4:18',
+    //   coverUrl: 'https://images.unsplash.com/photo-1604514288114-3851479df2f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb2NrJTIwYmFuZHxlbnwxfHx8fDE3NjQ0MTU0MjR8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
+    // {
+    //   id: 'l4',
+    //   title: 'Summertime',
+    //   artist: 'Ella Fitzgerald',
+    //   album: 'Ella and Louis',
+    //   duration: '4:11',
+    //   coverUrl: 'https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxqYXp6JTIwbXVzaWN8ZW58MXx8fHwxNzY0Mzc2NTQ5fDA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
+    // {
+    //   id: 'l5',
+    //   title: 'One More Time',
+    //   artist: 'Daft Punk',
+    //   album: 'Discovery',
+    //   duration: '5:20',
+    //   coverUrl: 'https://images.unsplash.com/photo-1624703307604-744ec383cbf4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVjdHJvbmljJTIwbXVzaWN8ZW58MXx8fHwxNzY0NDEwODgyfDA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
+    // {
+    //   id: 'l6',
+    //   title: 'Rolling in the Deep',
+    //   artist: 'Adele',
+    //   album: '21',
+    //   duration: '3:48',
+    //   coverUrl: 'https://images.unsplash.com/photo-1701506516420-3ef4b27413c9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb25jZXJ0JTIwbmlnaHR8ZW58MXx8fHwxNzY0NDgzMjk4fDA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
+    // {
+    //   id: 'l7',
+    //   title: 'Thinking Out Loud',
+    //   artist: 'Ed Sheeran',
+    //   album: 'x',
+    //   duration: '4:41',
+    //   coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwb3AlMjBtdXNpY3xlbnwxfHx8fDE3NjQ0MTc3Njh8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
+    // {
+    //   id: 'l8',
+    //   title: 'Stairway to Heaven',
+    //   artist: 'Led Zeppelin',
+    //   album: 'Led Zeppelin IV',
+    //   duration: '8:02',
+    //   coverUrl: 'https://images.unsplash.com/photo-1604514288114-3851479df2f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb2NrJTIwYmFuZHxlbnwxfHx8fDE3NjQ0MTU0MjR8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
+    // {
+    //   id: 'l9',
+    //   title: 'Billie Jean',
+    //   artist: 'Michael Jackson',
+    //   album: 'Thriller',
+    //   duration: '4:54',
+    //   coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwb3AlMjBtdXNpY3xlbnwxfHx8fDE3NjQ0MTc3Njh8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
+    // {
+    //   id: 'l10',
+    //   title: 'Hey Jude',
+    //   artist: 'The Beatles',
+    //   album: 'Hey Jude',
+    //   duration: '7:11',
+    //   coverUrl: 'https://images.unsplash.com/photo-1604514288114-3851479df2f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb2NrJTIwYmFuZHxlbnwxfHx8fDE3NjQ0MTU0MjR8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
+    // {
+    //   id: 'l11',
+    //   title: 'September',
+    //   artist: 'Earth, Wind & Fire',
+    //   album: 'The Best of Earth, Wind & Fire',
+    //   duration: '3:35',
+    //   coverUrl: 'https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxqYXp6JTIwbXVzaWN8ZW58MXx8fHwxNzY0Mzc2NTQ5fDA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
+    // {
+    //   id: 'l12',
+    //   title: 'Uptown Funk',
+    //   artist: 'Mark Ronson ft. Bruno Mars',
+    //   album: 'Uptown Special',
+    //   duration: '4:30',
+    //   coverUrl: 'https://images.unsplash.com/photo-1644855640845-ab57a047320e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtdXNpYyUyMGFsYnVtJTIwY292ZXJ8ZW58MXx8fHwxNzY0NDEwNDg0fDA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
+    // {
+    //   id: 'l13',
+    //   title: 'Closer',
+    //   artist: 'The Chainsmokers ft. Halsey',
+    //   album: 'Collage',
+    //   duration: '4:04',
+    //   coverUrl: 'https://images.unsplash.com/photo-1624703307604-744ec383cbf4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVjdHJvbmljJTIwbXVzaWN8ZW58MXx8fHwxNzY0NDEwODgyfDA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
+    // {
+    //   id: 'l14',
+    //   title: 'Perfect',
+    //   artist: 'Ed Sheeran',
+    //   album: '÷ (Divide)',
+    //   duration: '4:23',
+    //   coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwb3AlMjBtdXNpY3xlbnwxfHx8fDE3NjQ0MTc3Njh8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
+    // {
+    //   id: 'l15',
+    //   title: 'Hallelujah',
+    //   artist: 'Jeff Buckley',
+    //   album: 'Grace',
+    //   duration: '6:53',
+    //   coverUrl: 'https://images.unsplash.com/photo-1604514288114-3851479df2f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb2NrJTIwYmFuZHxlbnwxfHx8fDE3NjQ0MTU0MjR8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
+    // {
+    //   id: 'l16',
+    //   title: 'All of Me',
+    //   artist: 'John Legend',
+    //   album: 'Love in the Future',
+    //   duration: '4:29',
+    //   coverUrl: 'https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxqYXp6JTIwbXVzaWN8ZW58MXx8fHwxNzY0Mzc2NTQ5fDA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
+    // {
+    //   id: 'l17',
+    //   title: 'Don\'t Start Now',
+    //   artist: 'Dua Lipa',
+    //   album: 'Future Nostalgia',
+    //   duration: '3:03',
+    //   coverUrl: 'https://images.unsplash.com/photo-1644855640845-ab57a047320e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtdXNpYyUyMGFsYnVtJTIwY292ZXJ8ZW58MXx8fHwxNzY0NDEwNDg0fDA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
+    // {
+    //   id: 'l18',
+    //   title: 'Radioactive',
+    //   artist: 'Imagine Dragons',
+    //   album: 'Night Visions',
+    //   duration: '3:06',
+    //   coverUrl: 'https://images.unsplash.com/photo-1604514288114-3851479df2f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb2NrJTIwYmFuZHxlbnwxfHx8fDE3NjQ0MTU0MjR8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
+    // {
+    //   id: 'l19',
+    //   title: 'The A Team',
+    //   artist: 'Ed Sheeran',
+    //   album: '+',
+    //   duration: '4:18',
+    //   coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwb3AlMjBtdXNpY3xlbnwxfHx8fDE3NjQ0MTc3Njh8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
+    // {
+    //   id: 'l20',
+    //   title: 'Animals',
+    //   artist: 'Martin Garrix',
+    //   album: 'Animals',
+    //   duration: '5:04',
+    //   coverUrl: 'https://images.unsplash.com/photo-1624703307604-744ec383cbf4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVjdHJvbmljJTIwbXVzaWN8ZW58MXx8fHwxNzY0NDEwODgyfDA&ixlib=rb-4.1.0&q=80&w=1080',
+    // },
   ];
 
   const categories = [
@@ -263,10 +263,10 @@ export function LibraryPage({ onPlaySong }: LibraryPageProps) {
                 />
                 <div className="text-left min-w-0">
                   <p className="truncate group-hover:text-cyan-300 transition-colors text-sm sm:text-base">{song.title}</p>
-                  <p className="text-xs sm:text-sm text-blue-300 truncate">{song.artist}</p>
+                  <p className="text-xs sm:text-sm text-blue-300 truncate">{song.artistName}</p>
                 </div>
               </div>
-              <p className="hidden md:block text-blue-300 text-left truncate">{song.album}</p>
+              <p className="hidden md:block text-blue-300 text-left truncate">{song.albumName}</p>
               <p className="text-blue-300 text-right text-xs sm:text-sm">{song.duration}</p>
             </button>
           ))}
