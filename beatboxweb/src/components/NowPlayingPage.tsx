@@ -34,7 +34,7 @@ const formatDuration = (seconds: number) => {
 
 // Định nghĩa props, sử dụng Song type từ API
 interface NowPlayingPageProps {
-  currentSong: Song | null;
+  currentSong: SongApp & Song | null;
   isPlaying: boolean;
   onPlaySong: (song: Song) => void;
   onPlaybackStatusChange: (isPlaying: boolean) => void;
@@ -105,7 +105,7 @@ interface NowPlayingPageProps {
             {/* Album Cover */}
             <div className="relative mb-6 sm:mb-8 group">
               <ImageWithFallback
-               src={currentSong.coverUrl}
+               src={currentSong.cover}
               alt={currentSong.title}
               className="w-full aspect-square object-cover rounded-2xl shadow-2xl shadow-black/40"
             />
