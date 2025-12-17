@@ -27,7 +27,7 @@ export interface SongApp {
   artist: string;
   album: string;
   duration: string;
-  cover: string;
+  coverUrl: string;
   streamUrl?: string; // Quan trọng: Bao gồm cả streamUrl
 }
 
