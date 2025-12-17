@@ -10,6 +10,10 @@ import { PlaylistsPage } from './components/PlaylistsPage';
 import { SearchPage } from './components/SearchPage';
 import { NowPlayingPage } from './components/NowPlayingPage';
 import { ProfilePage } from './components/ProfilePage';
+import { CreatePlaylistPage } from './components/CreatePlaylistPage';
+import { LikedSongsPage } from './components/LikedSongsPage';
+import { RecentlyPlayedPage } from './components/RecentlyPlayedPage';
+
 import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
 import { logout } from '../api/authapi';
@@ -35,7 +39,7 @@ export interface Playlist {
 
 export default function App() {
   // State quản lý trang nội dung
-  const [currentPage, setCurrentPage] = useState<'home' | 'library' | 'playlists' | 'search' | 'nowplaying' | 'profile'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'library' | 'playlists' | 'search' | 'nowplaying' | 'profile' | 'create-playlist' | 'liked-songs' | 'recently-played'>('home');
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
 
   // ========================================================================
@@ -152,14 +156,27 @@ export default function App() {
             />
           }
           {currentPage === 'profile' && <ProfilePage onLogout={handleLogout} />}
+          {currentPage === 'liked-songs' && <LikedSongsPage onPlaySong={handlePlaySong} />}
+          {currentPage === 'recently-played' && <RecentlyPlayedPage onPlaySong={handlePlaySong} />}
+          {currentPage === 'create-playlist' && (
+            <CreatePlaylistPage
+              onBack={() => setCurrentPage('playlists')}
+              onSubmit={(playlist) => {
+                // Here you would typically save the playlist
+                console.log('Created playlist:', playlist);
+                setCurrentPage('playlists');
+              }}
+            />
+          )}
+
         </main>
 
-        <MusicPlayer 
+        <MusicPlayer
           currentSong={currentSong}
           isPlaying={isPlaying} // <--- Truyền state isPlaying xuống
           onTogglePlay={handleTogglePlay} // <--- Truyền hàm toggle xuống
           onClickPlayer={() => currentSong && setCurrentPage('nowplaying')}
-          // Thêm các hàm xử lý next/prev sau này
+        // Thêm các hàm xử lý next/prev sau này
         />
       </div>
     </div>
