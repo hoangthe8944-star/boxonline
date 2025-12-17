@@ -212,7 +212,7 @@ interface NowPlayingPageProps {
                 <div className="bg-gradient-to-r from-cyan-400/20 to-blue-500/20 rounded-lg p-3 border border-cyan-400/30">
                   <div className="flex items-center gap-3">
                     <ImageWithFallback
-                      src={currentSong.coverUrl}
+                      src={currentSong.cover}
                       alt={currentSong.title}
                       className="w-10 h-10 sm:w-12 sm:h-12 rounded shadow-lg flex-shrink-0"
                     />
