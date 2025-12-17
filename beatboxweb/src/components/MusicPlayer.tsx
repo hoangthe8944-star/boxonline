@@ -1,10 +1,10 @@
 import { Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Volume2, Heart } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react'; // ✅ Thêm useRef
-import type { Song } from '../App';
+import type { SongApp } from '../App';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
 interface MusicPlayerProps {
-  currentSong: Song | null;
+  currentSong: SongApp | null;
   isPlaying: boolean;
   onTogglePlay: () => void;
   // ✅ Thêm 2 props mới để xử lý next/prev từ player

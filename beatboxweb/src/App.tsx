@@ -19,7 +19,7 @@ import { RegisterForm } from './components/RegisterForm';
 import { logout } from '../api/authapi';
 import './index.css';
 
-export interface Song {
+export interface SongApp {
   id: string;
   title: string;
   artist: string;
@@ -57,7 +57,7 @@ export default function App() {
   const [isPlaying, setIsPlaying] = useState(false);
 
   // Hàm được gọi khi người dùng chọn một bài hát để phát
-  const handlePlaySong = (song: Song) => {
+  const handlePlaySong = (song: SongApp) => {
     setCurrentSong(song);
     setCurrentPage('nowplaying');
   };

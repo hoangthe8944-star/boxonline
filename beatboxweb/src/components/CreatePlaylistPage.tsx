@@ -6,7 +6,7 @@ import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Switch } from './ui/switch';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import type { Song } from '../App';
+import type { SongApp } from '../App';
 import { toast } from "sonner@2.0.3";
 
 interface CreatePlaylistPageProps {
@@ -21,7 +21,7 @@ export function CreatePlaylistPage({ onBack, onSubmit }: CreatePlaylistPageProps
   const [coverImage, setCoverImage] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const songPool: Song[] = [
+  const songPool: SongApp[] = [
     { id: 's1', title: 'Blinding Lights', artist: 'The Weeknd', album: 'After Hours', duration: '3:20', cover: 'https://images.unsplash.com/photo-1644855640845-ab57a047320e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtdXNpYyUyMGFsYnVtJTIwY292ZXJ8ZW58MXx8fHwxNzY0NDEwNDg0fDA&ixlib=rb-4.1.0&q=80&w=1080' },
     { id: 's2', title: 'Levitating', artist: 'Dua Lipa', album: 'Future Nostalgia', duration: '3:23', cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwb3AlMjBtdXNpY3xlbnwxfHx8fDE3NjQ0MTc3Njh8MA&ixlib=rb-4.1.0&q=80&w=1080' },
     { id: 's3', title: 'Bohemian Rhapsody', artist: 'Queen', album: 'A Night at the Opera', duration: '5:55', cover: 'https://images.unsplash.com/photo-1604514288114-3851479df2f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb2NrJTIwYmFuZHxlbnwxfHx8fDE3NjQ0MTU0MjR8MA&ixlib=rb-4.1.0&q=80&w=1080' },
@@ -34,7 +34,7 @@ export function CreatePlaylistPage({ onBack, onSubmit }: CreatePlaylistPageProps
     { id: 's10', title: 'Titanium', artist: 'David Guetta ft. Sia', album: 'Nothing but the Beat', duration: '4:05', cover: 'https://images.unsplash.com/photo-1624703307604-744ec383cbf4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVjdHJvbmljJTIwbXVzaWN8ZW58MXx8fHwxNzY0NDEwODgyfDA&ixlib=rb-4.1.0&q=80&w=1080' },
   ];
 
-  const [suggestedSongs, setSuggestedSongs] = useState<Song[]>(songPool.slice(0, 5));
+  const [suggestedSongs, setSuggestedSongs] = useState<SongApp[]>(songPool.slice(0, 5));
   const [addedSongs, setAddedSongs] = useState<Set<string>>(new Set());
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,7 +58,7 @@ export function CreatePlaylistPage({ onBack, onSubmit }: CreatePlaylistPageProps
     }, 500);
   };
 
-  const handleAddSong = (song: Song) => {
+  const handleAddSong = (song: SongApp) => {
     setAddedSongs(prev => {
       const newSet = new Set(prev);
       newSet.add(song.id);

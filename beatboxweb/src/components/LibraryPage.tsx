@@ -1,13 +1,13 @@
 import { Music, Heart, Clock, ListMusic } from 'lucide-react';
-import type { Song } from '../App';
+import type { SongApp } from '../App';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
 interface LibraryPageProps {
-  onPlaySong: (song: Song) => void;
+  onPlaySong: (song: SongApp) => void;
 }
 
 export function LibraryPage({ onPlaySong }: LibraryPageProps) {
-  const likedSongs: Song[] = [
+  const likedSongs: SongApp[] = [
     {
       id: 'l1',
       title: 'Shape of You',

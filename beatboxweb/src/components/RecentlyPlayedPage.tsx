@@ -1,14 +1,14 @@
 import { Play, Clock, History } from 'lucide-react';
-import type { Song } from '../App';
+import type { SongApp } from '../App';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
 interface RecentlyPlayedPageProps {
-  onPlaySong: (song: Song) => void;
+  onPlaySong: (song: SongApp) => void;
 }
 
 export function RecentlyPlayedPage({ onPlaySong }: RecentlyPlayedPageProps) {
   // Mock data for recently played
-  const recentSongs: Song[] = [
+  const recentSongs: SongApp[] = [
     {
       id: 'r1',
       title: 'Midnight City',

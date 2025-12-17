@@ -1,14 +1,14 @@
 import { Play, Clock, Heart } from 'lucide-react';
-import type { Song } from '../App';
+import type { SongApp } from '../App';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
 interface LikedSongsPageProps {
-  onPlaySong: (song: Song) => void;
+  onPlaySong: (song: SongApp) => void;
 }
 
 export function LikedSongsPage({ onPlaySong }: LikedSongsPageProps) {
   // Mock data for liked songs
-  const likedSongs: Song[] = [
+  const likedSongs: SongApp[] = [
     {
       id: 'l1',
       title: 'Cruel Summer',
