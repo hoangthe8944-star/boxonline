@@ -1,5 +1,5 @@
 import { Play, Heart, Shuffle, Repeat, ChevronDown, Equal, Pause } from 'lucide-react';
-import type { SongApp } from '../App'; 
+// import type { SongApp } from '../App'; 
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useState, useRef, useEffect } from 'react';
 import type { Song } from '../../api/apiclient'; 
@@ -18,9 +18,9 @@ export const toggleLikeStatus = async (songId: string, isLiked: boolean): Promis
 */
 
 // Định nghĩa lại Song interface để bao gồm streamUrl
-interface ExtendedSong extends SongApp {
-  streamUrl?: string;
-}
+// interface ExtendedSong extends Song {
+//   streamUrl?: string;
+// }
 
 const formatDuration = (seconds: number) => {
   if (isNaN(seconds) || seconds < 0) {
@@ -34,7 +34,7 @@ const formatDuration = (seconds: number) => {
 
 // Định nghĩa props, sử dụng Song type từ API
 interface NowPlayingPageProps {
-  currentSong: SongApp & Song | null;
+  currentSong: Song | null;
   isPlaying: boolean;
   onPlaySong: (song: Song) => void;
   onPlaybackStatusChange: (isPlaying: boolean) => void;
@@ -105,7 +105,7 @@ interface NowPlayingPageProps {
             {/* Album Cover */}
             <div className="relative mb-6 sm:mb-8 group">
               <ImageWithFallback
-               src={currentSong.cover}
+               src={currentSong.coverUrl}
               alt={currentSong.title}
               className="w-full aspect-square object-cover rounded-2xl shadow-2xl shadow-black/40"
             />
@@ -212,7 +212,7 @@ interface NowPlayingPageProps {
                 <div className="bg-gradient-to-r from-cyan-400/20 to-blue-500/20 rounded-lg p-3 border border-cyan-400/30">
                   <div className="flex items-center gap-3">
                     <ImageWithFallback
-                      src={currentSong.cover}
+                      src={currentSong.coverUrl}
                       alt={currentSong.title}
                       className="w-10 h-10 sm:w-12 sm:h-12 rounded shadow-lg flex-shrink-0"
                     />
