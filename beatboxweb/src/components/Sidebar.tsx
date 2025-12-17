@@ -1,8 +1,8 @@
 import { Home, Library, ListMusic, Search, Heart, Clock, User, Crown } from 'lucide-react';
 
 interface SidebarProps {
-  currentPage: 'home' | 'library' | 'playlists' | 'search' | 'nowplaying';
-  onNavigate: (page: 'home' | 'library' | 'playlists' | 'search' | 'nowplaying') => void;
+  currentPage: 'home' | 'library' | 'playlists' | 'search' | 'nowplaying' | 'profile' | 'create-playlist' | 'liked-songs' | 'recently-played';
+  onNavigate: (page: 'home' | 'library' | 'playlists' | 'search' | 'nowplaying' | 'profile' | 'create-playlist' | 'liked-songs' | 'recently-played') => void;
   isOpen: boolean;
   onClose: () => void;
   onProfileClick: () => void;
@@ -17,8 +17,8 @@ export function Sidebar({ currentPage, onNavigate, isOpen, onClose, onProfileCli
 
   const libraryItems = [
     { id: 'playlists' as const, label: 'Playlists', icon: ListMusic },
-    { label: 'Bài hát yêu thích', icon: Heart },
-    { label: 'Đã phát gần đây', icon: Clock },
+    { id: 'liked-songs' as const, label: 'Bài hát yêu thích', icon: Heart },
+    { id: 'recently-played' as const, label: 'Đã phát gần đây', icon: Clock },
   ];
 
   return (
