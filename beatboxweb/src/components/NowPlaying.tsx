@@ -5,8 +5,8 @@ import { ImageWithFallback } from "./figma/ImageWithFallback";
 interface Song {
   id: number;
   title: string;
-  artist: string;
-  cover: string;
+  artistName: string;
+  coverUrl: string;
   duration: string;
 }
 
@@ -44,7 +44,7 @@ export function NowPlaying({ currentSong, playlist, onBack, onPlaySong }: NowPla
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md aspect-square rounded-2xl overflow-hidden shadow-2xl">
           <ImageWithFallback
-            src={currentSong.cover}
+            src={currentSong.coverUrl}
             alt={currentSong.title}
             className="w-full h-full object-cover"
           />
@@ -56,7 +56,7 @@ export function NowPlaying({ currentSong, playlist, onBack, onPlaySong }: NowPla
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1 min-w-0">
             <h1 className="text-white text-3xl truncate mb-2">{currentSong.title}</h1>
-            <p className="text-white/70 text-lg">{currentSong.artist}</p>
+            <p className="text-white/70 text-lg">{currentSong.artistName}</p>
           </div>
           <Button
             variant="ghost"
@@ -83,14 +83,14 @@ export function NowPlaying({ currentSong, playlist, onBack, onPlaySong }: NowPla
               >
                 <div className="w-12 h-12 rounded-md overflow-hidden flex-shrink-0">
                   <ImageWithFallback
-                    src={song.cover}
+                    src={song.coverUrl}
                     alt={song.title}
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="flex-1 min-w-0 text-left">
                   <div className="text-white truncate">{song.title}</div>
-                  <div className="text-white/60 text-sm truncate">{song.artist}</div>
+                  <div className="text-white/60 text-sm truncate">{song.artistName}</div>
                 </div>
                 <div className="text-white/60 text-sm">{song.duration}</div>
               </button>

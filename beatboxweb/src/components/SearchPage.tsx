@@ -2,21 +2,22 @@ import { Play } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { searchPublicSongs } from '../../api/apiclient';
+import type { Song } from '../../api/apiclient';
 
 // Định nghĩa Type Song cho Giao diện
-export interface Song {
-  id: string;
-  title: string;
-  artist: string;
-  album: string;
-  cover: string;
-  duration: string;
-  streamUrl?: string;
-}
+// export interface Song {
+//   id: string;
+//   title: string;
+//   artist: string;
+//   album: string;
+//   cover: string;
+//   duration: string;
+//   streamUrl?: string;
+// }
 
 interface SearchPageProps {
   searchQuery: string;
-  onPlaySong: (song: Song) => void;
+  onPlaySong: (song: Song, contextPlaylist: Song[]) => void;
 }
 
 export function SearchPage({ searchQuery, onPlaySong }: SearchPageProps) {
@@ -36,14 +37,8 @@ export function SearchPage({ searchQuery, onPlaySong }: SearchPageProps) {
 
   // --- LOGIC CALL API ---
   useEffect(() => {
-    const formatDuration = (seconds: number) => {
-      if (!seconds) return "00:00";
-      const m = Math.floor(seconds / 60);
-      const s = seconds % 60;
-      return `${m}:${s < 10 ? '0' : ''}${s}`;
-    };
-
     const fetchSongs = async () => {
+      // Nếu không có query, dọn dẹp kết quả và dừng lại
       if (!searchQuery.trim()) {
         setResults([]);
         return;
@@ -52,22 +47,10 @@ export function SearchPage({ searchQuery, onPlaySong }: SearchPageProps) {
 
       try {
         const response = await searchPublicSongs(searchQuery);
-        console.log("API Result:", response.data);
-
-        // ✅ Gọn gàng hơn: Luôn đảm bảo dataArray là một mảng
-        const dataArray = Array.isArray(response.data) ? response.data : [];
-
-        const mappedSongs: Song[] = dataArray.map((item: any) => ({
-          id: item.id,
-          title: item.title,
-          artist: item.artistName || "Unknown Artist",
-          album: item.albumName || "Single",
-          cover: item.coverUrl || "https://placehold.co/400",
-          duration: formatDuration(item.duration),
-          streamUrl: item.streamUrl
-        }));
-        setResults(mappedSongs);
-
+        // ✅ BƯỚC 3: KHÔNG CẦN MAP DỮ LIỆU NỮA, SỬ DỤNG TRỰC TIẾP
+        // API đã trả về đúng kiểu 'Song[]' mà chúng ta cần
+        const songsFromApi = Array.isArray(response.data) ? response.data : [];
+        setResults(songsFromApi);
       } catch (error) {
         console.error("Lỗi tìm kiếm:", error);
         setResults([]);
@@ -76,12 +59,22 @@ export function SearchPage({ searchQuery, onPlaySong }: SearchPageProps) {
       }
     };
 
-    const timeoutId = setTimeout(() => fetchSongs(), 500);
+    // Debounce: Chờ 300ms sau khi người dùng ngừng gõ mới gọi API
+    const timeoutId = setTimeout(() => fetchSongs(), 300);
     return () => clearTimeout(timeoutId);
   }, [searchQuery]);
 
+  // Hàm tiện ích định dạng thời gian
+  const formatDuration = (seconds: number) => {
+    if (isNaN(seconds) || seconds < 0) return "0:00";
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+
   // Kiểm tra xem có phải là kết quả của một nghệ sĩ duy nhất không
-  const isSingleArtistResult = results.length > 0 && results.every(song => song.artist === results[0].artist);
+  const isSingleArtistResult = results.length > 0 && results.every(song => song.artistName === results[0].artistName);
 
   return (
     <div className="px-8 py-6 space-y-8">
@@ -99,11 +92,11 @@ export function SearchPage({ searchQuery, onPlaySong }: SearchPageProps) {
               <div className="mb-8">
                 <h3 className="mb-4 text-blue-300 font-semibold uppercase tracking-wider text-sm">Kết quả hàng đầu</h3>
                 <button
-                  onClick={() => onPlaySong(results[0])}
+                  onClick={() => onPlaySong(results[0], results)}
                   className="bg-gradient-to-br from-blue-900/60 to-cyan-800/40 backdrop-blur rounded-lg p-6 hover:from-blue-800/70 hover:to-cyan-700/50 transition-all group max-w-md w-full text-left border border-white/5 hover:border-cyan-500/30"
                 >
                   <ImageWithFallback
-                    src={results[0].cover}
+                    src={results[0].coverUrl}
                     alt={results[0].title}
                     className="w-32 h-32 rounded-lg shadow-2xl mb-4 object-cover"
                   />
@@ -113,7 +106,7 @@ export function SearchPage({ searchQuery, onPlaySong }: SearchPageProps) {
                   <div className="flex items-center gap-2 text-blue-300">
                     <span className="bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded text-xs font-medium">Bài hát</span>
                     <span className="text-white/60">•</span>
-                    <span className="text-white/90">{results[0].artist}</span>
+                    <span className="text-white/90">{results[0].artistName}</span>
                   </div>
                 </button>
               </div>
@@ -122,18 +115,18 @@ export function SearchPage({ searchQuery, onPlaySong }: SearchPageProps) {
               <div>
                 {/* ✅ Tiêu đề thông minh */}
                 <h3 className="mb-4 text-blue-300 font-semibold uppercase tracking-wider text-sm">
-                  {isSingleArtistResult ? `Bài hát của ${results[0].artist}` : 'Bài hát'}
+                  {isSingleArtistResult ? `Bài hát của ${results[0].artistName}` : 'Bài hát'}
                 </h3>
                 <div className="space-y-2">
                   {results.map((song, index) => (
                     <button
                       key={song.id}
-                      onClick={() => onPlaySong(song)}
+                      onClick={() => onPlaySong(song, results)}
                       className="w-full flex items-center gap-4 p-3 rounded-lg hover:bg-white/10 transition-all group border border-transparent hover:border-white/5"
                     >
                       <span className="text-blue-300 w-6 text-center font-mono">{index + 1}</span>
                       <ImageWithFallback
-                        src={song.cover}
+                        src={song.coverUrl}
                         alt={song.title}
                         className="w-12 h-12 rounded shadow-lg object-cover"
                       />
@@ -141,12 +134,12 @@ export function SearchPage({ searchQuery, onPlaySong }: SearchPageProps) {
                         <p className="truncate text-white group-hover:text-cyan-400 transition-colors font-medium text-lg">
                           {song.title}
                         </p>
-                        <p className="text-sm text-gray-400 truncate group-hover:text-gray-300">{song.artist}</p>
+                        <p className="text-sm text-gray-400 truncate group-hover:text-gray-300">{song.artistName}</p>
                       </div>
                       <p className="text-sm text-gray-400 hidden md:block truncate max-w-[200px]">
-                        {song.album}
+                        {song.albumName}
                       </p>
-                      <p className="text-sm text-gray-400 w-16 text-right font-mono">{song.duration}</p>
+                      <p className="text-sm text-gray-400 w-16 text-right font-mono">{formatDuration(song.duration)}</p>
                       <div className="w-10 h-10 rounded-full bg-cyan-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform scale-90 group-hover:scale-100 shadow-lg shadow-cyan-500/50">
                         <Play className="w-4 h-4 text-white ml-0.5" fill="white" />
                       </div>
