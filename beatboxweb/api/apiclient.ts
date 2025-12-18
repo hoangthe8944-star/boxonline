@@ -3,6 +3,8 @@ import axios from 'axios';
 // --- CẤU HÌNH URL ---
 // Sử dụng process.env để linh hoạt hơn giữa môi trường dev và production
 const PUBLIC_URL = 'https://suzette-triform-angelina.ngrok-free.dev/api/public';
+const HiStory_URL = 'https://suzette-triform-angelina.ngrok-free.dev/api/songs';
+
 
 // ====================================================
 // 1. TYPE DEFINITIONS (DTO)
@@ -73,7 +75,7 @@ export const getAllPublicSongs = () => {
 };
 export const getRecentlyPlayedSongs = () => {
     const token = localStorage.getItem("accessToken");
-    return axios.get<Song[]>(`${PUBLIC_URL}/history/songs`, { // Giả sử endpoint của bạn là thế này
+    return axios.get<Song[]>(`${HiStory_URL}/history/songs`, { // Giả sử endpoint của bạn là thế này
          headers: {
             "ngrok-skip-browser-warning": "true",
             "Authorization": `Bearer ${token}` // Endpoint này yêu cầu xác thực
