@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "https://suzette-triform-angelina.ngrok-free.dev/api/auth";
+const BASE_URL = "https://beatboxcompany.onrender.com/api/auth";
 
 export interface RegisterRequest {
   username: string;
