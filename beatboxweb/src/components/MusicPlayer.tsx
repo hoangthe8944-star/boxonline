@@ -1,7 +1,7 @@
 import { Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Volume2, Heart } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 // Sử dụng 'Song' type được định nghĩa trong file API của bạn
-import type { Song } from '../../api/apiclient'; 
+import type { Song } from '../../api/apiclient';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
 // Định nghĩa các props mà component này cần từ cha
@@ -68,7 +68,7 @@ export function MusicPlayer({
 
     // 1. Khi metadata (thời lượng) đã được tải
     const handleLoadedMetadata = () => setDuration(audio.duration);
-    
+
     // 2. Khi thời gian phát thay đổi -> Cập nhật UI
     const handleTimeUpdate = () => {
       setCurrentTime(audio.currentTime);
@@ -83,10 +83,17 @@ export function MusicPlayer({
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('ended', handleSongEnd);
+    const playPromise = audio.play();
 
     // Nếu trạng thái chung là 'playing', bắt đầu phát nhạc ngay
-    if (isPlaying) {
-      audio.play().catch(e => console.error("Lỗi tự động phát nhạc:", e));
+    if (playPromise !== undefined) {
+      playPromise.catch(error => {
+        // Lỗi này thường xảy ra nếu người dùng chưa tương tác với trang.
+        // Trình duyệt chặn autoplay. `App.tsx` sẽ cần xử lý `isPlaying=false`.
+        console.error("Lỗi tự động phát nhạc:", error);
+        // Có thể báo lại cho cha để cập nhật UI nếu cần
+        onTogglePlay(); // Báo cho cha biết không thể play, hãy set isPlaying=false
+      });
     }
 
     // Hàm dọn dẹp: Chạy khi component unmount hoặc khi `currentSong` thay đổi
