@@ -46,27 +46,49 @@ export function HomePage({ onPlaySong }: HomePageProps) {
       setLoading(true);
       setError(null);
       try {
-        // Gọi đồng thời cả hai API để tăng tốc độ tải
-        const [recentResponse, trendingResponse] = await Promise.all([
-          getRecentlyPlayedSongs(), // API cho "Đã phát gần đây"
-          getTrendingSongs(12)     // API cho "Đề xuất cho bạn"
+        // ✅ BƯỚC 1: VẪN GỌI CẢ HAI API
+        // Chúng ta dùng `Promise.allSettled` để một API lỗi không làm hỏng toàn bộ quá trình.
+        const [recentResult, trendingResult] = await Promise.allSettled([
+          getRecentlyPlayedSongs(),
+          getTrendingSongs(18) // Lấy nhiều hơn một chút để dự phòng
         ]);
 
-        // Cập nhật state với dữ liệu từ API
-        setRecentlyPlayed(recentResponse.data.slice(0, 6)); // Lấy 6 bài gần nhất
-        setRecommendedSongs(trendingResponse.data);
+        let trendingSongs: Song[] = [];
+        if (trendingResult.status === 'fulfilled') {
+          trendingSongs = trendingResult.value.data;
+        } else {
+          // Nếu API trending cũng lỗi, ném ra lỗi để hiển thị thông báo
+          console.error("Lỗi khi tải Trending Songs:", trendingResult.reason);
+          throw new Error("Không thể tải danh sách bài hát đề xuất.");
+        }
 
-      } catch (err) {
+        // ✅ BƯỚC 2: XỬ LÝ LOGIC "FALLBACK" (DỰ PHÒNG)
+        let recentSongs: Song[] = [];
+        // Kiểm tra xem API "recent" có thành công và trả về dữ liệu không
+        if (recentResult.status === 'fulfilled' && recentResult.value.data.length > 0) {
+          // Kịch bản 1: Lấy thành công, dùng dữ liệu lịch sử
+          recentSongs = recentResult.value.data.slice(0, 6);
+        } else {
+          // Kịch bản 2: Lỗi hoặc không có lịch sử -> Lấy ngẫu nhiên từ trending
+          console.log("Không có lịch sử phát gần đây, lấy ngẫu nhiên từ trending.");
+          recentSongs = trendingSongs.slice(0, 6); // Lấy 6 bài đầu của trending
+        }
+
+        // Cập nhật state
+        setRecentlyPlayed(recentSongs);
+        // Lấy 12 bài hát còn lại (hoặc toàn bộ nếu ít hơn) cho phần đề xuất
+        setRecommendedSongs(trendingSongs.slice(6));
+
+      } catch (err: any) {
         console.error("Lỗi khi tải dữ liệu trang chủ:", err);
-        setError("Không thể tải dữ liệu. Vui lòng thử lại sau.");
+        setError(err.message || "Không thể tải dữ liệu. Vui lòng thử lại sau.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchHomePageData();
-  }, []); // Chỉ chạy 1 lần khi component được mount
-
+  }, []);
 
   // Hàm tiện ích để định dạng thời gian
   const formatDuration = (seconds: number) => {
@@ -81,8 +103,17 @@ export function HomePage({ onPlaySong }: HomePageProps) {
     <div>
       <h3 className="mb-4">{title}</h3>
       {loading ? (
-        <p className="text-blue-300">Đang tải...</p>
-      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="flex items-center gap-3 sm:gap-4 bg-white/5 rounded-lg p-2 animate-pulse">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded bg-white/10 flex-shrink-0"></div>
+              <div className="flex-1 space-y-2">
+                <div className="h-4 bg-white/10 rounded w-3/4"></div>
+                <div className="h-3 bg-white/10 rounded w-1/2"></div>
+              </div>
+            </div>
+          ))}
+        </div>) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {songs.map((song) => (
             <button
@@ -125,8 +156,17 @@ export function HomePage({ onPlaySong }: HomePageProps) {
       <div>
         {renderSongSection("Phát gần đây", recentlyPlayed, recentlyPlayed)}
         {loading ? (
-          <p className="text-blue-300">Đang tải...</p>
-        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="flex items-center gap-3 sm:gap-4 bg-white/5 rounded-lg p-2 animate-pulse">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded bg-white/10 flex-shrink-0"></div>
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-white/10 rounded w-3/4"></div>
+                  <div className="h-3 bg-white/10 rounded w-1/2"></div>
+                </div>
+              </div>
+            ))}
+          </div>) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {recentlyPlayed.map((song) => (
               <button
@@ -194,8 +234,17 @@ export function HomePage({ onPlaySong }: HomePageProps) {
           </button>
         </div>
         {loading ? (
-          <p className="text-blue-300">Đang tải...</p>
-        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="flex items-center gap-3 sm:gap-4 bg-white/5 rounded-lg p-2 animate-pulse">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded bg-white/10 flex-shrink-0"></div>
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-white/10 rounded w-3/4"></div>
+                  <div className="h-3 bg-white/10 rounded w-1/2"></div>
+                </div>
+              </div>
+            ))}
+          </div>) : (
           <div className="space-y-2">
             {recommendedSongs.map((song, index) => (
               <button
