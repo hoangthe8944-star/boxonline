@@ -156,17 +156,8 @@ export function HomePage({ onPlaySong }: HomePageProps) {
       <div>
         {renderSongSection("Phát gần đây", recentlyPlayed, recentlyPlayed)}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="flex items-center gap-3 sm:gap-4 bg-white/5 rounded-lg p-2 animate-pulse">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded bg-white/10 flex-shrink-0"></div>
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-white/10 rounded w-3/4"></div>
-                  <div className="h-3 bg-white/10 rounded w-1/2"></div>
-                </div>
-              </div>
-            ))}
-          </div>) : (
+          <p className="text-blue-300">Đang tải...</p>
+        ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {recentlyPlayed.map((song) => (
               <button
@@ -234,17 +225,8 @@ export function HomePage({ onPlaySong }: HomePageProps) {
           </button>
         </div>
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="flex items-center gap-3 sm:gap-4 bg-white/5 rounded-lg p-2 animate-pulse">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded bg-white/10 flex-shrink-0"></div>
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-white/10 rounded w-3/4"></div>
-                  <div className="h-3 bg-white/10 rounded w-1/2"></div>
-                </div>
-              </div>
-            ))}
-          </div>) : (
+          <p className="text-blue-300">Đang tải...</p>
+        ) : (
           <div className="space-y-2">
             {recommendedSongs.map((song, index) => (
               <button
