@@ -100,6 +100,11 @@ export default function App() {
     setCurrentQueueIndex(nextIndex);
     setCurrentSong(playQueue[nextIndex]);
     setIsPlaying(true);
+     try {
+      recordPlayback(playQueue[nextIndex].id);
+    } catch (error) {
+      console.error("Lỗi khi ghi nhận lượt nghe cho bài hát tiếp theo:", error);
+    }
   };
 
   // Hàm quay lại bài hát trước đó trong hàng đợi
@@ -110,6 +115,11 @@ export default function App() {
     setCurrentQueueIndex(prevIndex);
     setCurrentSong(playQueue[prevIndex]);
     setIsPlaying(true);
+    try {
+      recordPlayback(playQueue[prevIndex].id);
+    } catch (error) {
+      console.error("Lỗi khi ghi nhận lượt nghe cho bài hát trước đó:", error);
+    }
   };
   // Các hàm xử lý xác thực
   const handleAuthSuccess = (newToken: string) => {
