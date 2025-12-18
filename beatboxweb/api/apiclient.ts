@@ -82,7 +82,20 @@ export const getRecentlyPlayedSongs = () => {
         }
     });
 };
+export const recordPlayback = (songId: string) => {
+    const token = localStorage.getItem("accessToken");
 
+    // Endpoint này là POST và không có body, chỉ cần URL
+    const fullUrl = `${History_URL}/songs/${songId}/playback`;
+
+    // Chúng ta không quan tâm đến kết quả trả về, chỉ cần gọi là được
+    return axios.post(fullUrl, {}, { // Gửi một body rỗng {}
+         headers: {
+            "ngrok-skip-browser-warning": "true",
+            "Authorization": `Bearer ${token}`
+        }
+    });
+};
 /**
  * [ĐÃ XÓA] Hàm incrementViewCount không còn cần thiết.
  * Lý do: Trong PublicController, endpoint GET /songs/{songId}/info đã tự động gọi

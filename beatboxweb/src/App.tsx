@@ -13,6 +13,7 @@ import { ProfilePage } from './components/ProfilePage';
 import { CreatePlaylistPage } from './components/CreatePlaylistPage';
 import { LikedSongsPage } from './components/LikedSongsPage';
 import { RecentlyPlayedPage } from './components/RecentlyPlayedPage';
+import { recordPlayback } from '../api/apiclient'; 
 
 import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
@@ -76,6 +77,12 @@ export default function App() {
     // Tìm vị trí của bài hát trong hàng đợi mới
     const songIndex = newQueue.findIndex(s => s.id === song.id);
     setCurrentQueueIndex(songIndex !== -1 ? songIndex : 0);
+     try {
+      recordPlayback(song.id);
+      console.log(`Đã ghi nhận lượt nghe cho bài hát: ${song.title}`);
+    } catch (error) {
+      console.error("Lỗi khi ghi nhận lượt nghe:", error);
+    }
   };
 
   // Hàm bật/tắt phát nhạc
