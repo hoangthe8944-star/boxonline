@@ -200,7 +200,12 @@ export default function App() {
           {currentPage === 'library' && <LibraryPage onPlaySong={handlePlaySong} />}
           {currentPage === 'playlists' && <PlaylistsPage onPlaySong={handlePlaySong} />}
           {currentPage === 'search' && <SearchPage searchQuery={searchQuery} onPlaySong={handlePlaySong} />}
-
+          {currentPage === 'playlists' && (
+            <PlaylistsPage 
+              onPlaySong={handlePlaySong} 
+              onCreateClick={() => setCurrentPage('create-playlist')}
+            />
+          )}
           {currentPage === 'nowplaying' &&
             <NowPlayingPage
               currentSong={currentSong}
