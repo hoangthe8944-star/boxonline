@@ -155,7 +155,7 @@ export function HomePage({ onPlaySong }: HomePageProps) {
       {/* Quick Access */}
       <div>
         {renderSongSection("Phát gần đây", recentlyPlayed, recentlyPlayed)}
-        {loading ? (
+        {/* {loading ? (
           <p className="text-blue-300">Đang tải...</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
@@ -180,7 +180,7 @@ export function HomePage({ onPlaySong }: HomePageProps) {
               </button>
             ))}
           </div>
-        )}
+        )} */}
       </div>
 
       {/* Featured Playlists (GIỮ NGUYÊN) */}
