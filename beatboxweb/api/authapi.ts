@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "https://beatboxcompany.onrender.com/api/auth";
+const BASE_URL = "https://backend-jfn4.onrender.com/api/auth";
 
 export interface RegisterRequest {
   username: string;
