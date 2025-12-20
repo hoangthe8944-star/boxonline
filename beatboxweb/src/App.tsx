@@ -67,35 +67,25 @@ export default function App() {
   // Hàm được gọi khi người dùng chọn một bài hát để phát
   // Nó cũng nhận một danh sách phát (context) để tạo hàng đợi
   // ✅ CẬP NHẬT: Hàm phát nhạc thông minh hơn
-  const handlePlaySong = async (song: Song, contextPlaylist: Song[] = []) => {
-    try {
-      // 1. Thiết lập bài hát hiện tại
-      setCurrentSong(song);
-      setIsPlaying(true);
+  const handlePlaySong = (song: Song, contextPlaylist: Song[] = []) => {
+    // 1. Cập nhật bài hát hiện tại
+    setCurrentSong(song);
+    setIsPlaying(true);
 
-      // 2. "LUÔN ĐỔI MỚI" DANH SÁCH: 
-      // Nếu có context (ví dụ: danh sách từ Search hoặc Trending), nạp toàn bộ vào Queue
-      if (contextPlaylist.length > 0) {
-        setPlayQueue(contextPlaylist);
-        const index = contextPlaylist.findIndex(s => s.id === song.id);
-        setCurrentQueueIndex(index !== -1 ? index : 0);
-      } else {
-        // Nếu phát lẻ loi, tự tạo Queue chỉ có 1 bài (hoặc có thể lấy từ Trending làm mặc định)
-        setPlayQueue([song]);
-        setCurrentQueueIndex(0);
-      }
+    // 2. CẬP NHẬT HÀNG ĐỢI (QUEUE): 
+    // Nếu có danh sách đi kèm, dùng danh sách đó. Nếu không, chỉ có 1 bài.
+    const newQueue = contextPlaylist.length > 0 ? contextPlaylist : [song];
+    setPlayQueue(newQueue);
 
-      // 3. Ghi nhận lượt nghe (Gọi API an toàn)
-      if (token) {
-        // recordPlayback đã được sửa lỗi nối chuỗi URL trong apiclient
-        await recordPlayback(song.id);
-        console.log(`Đã ghi nhận lượt nghe: ${song.title}`);
-      }
-    } catch (error) {
-      console.error("Lỗi khi xử lý phát nhạc:", error);
+    // 3. Tìm vị trí của bài hát trong hàng đợi mới để đồng bộ Index
+    const songIndex = newQueue.findIndex(s => s.id === song.id);
+    setCurrentQueueIndex(songIndex !== -1 ? songIndex : 0);
+
+    // 4. Ghi nhận lượt nghe vào Backend
+    if (localStorage.getItem("accessToken")) {
+      recordPlayback(song.id).catch(err => console.error("API Playback Error:", err));
     }
   };
-
   // ✅ CẬP NHẬT: Chuyển bài tiếp theo
   const handleNextSong = () => {
     if (playQueue.length === 0) return;
