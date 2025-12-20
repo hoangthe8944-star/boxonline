@@ -86,7 +86,7 @@ export const recordPlayback = (songId: string) => {
     const token = localStorage.getItem("accessToken");
 
     // Endpoint này là POST và không có body, chỉ cần URL
-    const fullUrl = `${History_URL}/songs/${songId}/playback`;
+    const fullUrl = `${History_URL}/${songId}/playback`;
 
     // Chúng ta không quan tâm đến kết quả trả về, chỉ cần gọi là được
     return axios.post(fullUrl, {}, { // Gửi một body rỗng {}
