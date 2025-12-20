@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Menu } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { MusicPlayer } from './components/MusicPlayer';
@@ -47,13 +47,14 @@ export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // --- STATE QUẢN LÝ XÁC THỰC ---
-  const [token, setToken] = useState<string | null>(localStorage.getItem("accessToken"));
+  const [token, setToken] = useState<string | null>(sessionStorage.getItem("accessToken"));
   const [authView, setAuthView] = useState<'login' | 'register'>('login');
 
   // ✅ BƯỚC 2: "NGUỒN CHÂN LÝ DUY NHẤT" VỀ TRẠNG THÁI PHÁT NHẠC
   // -------------------------------------------------------------------
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // State để quản lý hàng đợi phát nhạc
   const [playQueue, setPlayQueue] = useState<Song[]>([]);
@@ -68,25 +69,22 @@ export default function App() {
   // Nó cũng nhận một danh sách phát (context) để tạo hàng đợi
   // ✅ CẬP NHẬT: Hàm phát nhạc thông minh hơn
   const handlePlaySong = (song: Song, contextPlaylist: Song[] = []) => {
-    // 1. Cập nhật bài hát hiện tại
+    // Nếu chưa đăng nhập, không cho nghe nhạc và hiện Modal
+    if (!token) {
+      setShowAuthModal(true);
+      return;
+    }
+
     setCurrentSong(song);
     setIsPlaying(true);
-
-    // 2. CẬP NHẬT HÀNG ĐỢI (QUEUE): 
-    // Nếu có danh sách đi kèm, dùng danh sách đó. Nếu không, chỉ có 1 bài.
     const newQueue = contextPlaylist.length > 0 ? contextPlaylist : [song];
     setPlayQueue(newQueue);
-
-    // 3. Tìm vị trí của bài hát trong hàng đợi mới để đồng bộ Index
     const songIndex = newQueue.findIndex(s => s.id === song.id);
     setCurrentQueueIndex(songIndex !== -1 ? songIndex : 0);
 
-    // 4. Ghi nhận lượt nghe vào Backend
-    if (localStorage.getItem("accessToken")) {
-      recordPlayback(song.id).catch(err => console.error("API Playback Error:", err));
-    }
-  };
-  // ✅ CẬP NHẬT: Chuyển bài tiếp theo
+    // Record playback
+    recordPlayback(song.id).catch(err => console.error("API Playback Error:", err));
+  };  // ✅ CẬP NHẬT: Chuyển bài tiếp theo
   const handleNextSong = () => {
     if (playQueue.length === 0) return;
 
@@ -126,6 +124,8 @@ export default function App() {
   };  // Các hàm xử lý xác thực
   const handleAuthSuccess = (newToken: string) => {
     setToken(newToken);
+    sessionStorage.setItem("accessToken", newToken); // Lưu vào session
+    setShowAuthModal(false); // Đóng modal sau khi đăng nhập xong
   };
   const handleTogglePlay = () => {
     if (currentSong) {
@@ -135,11 +135,10 @@ export default function App() {
 
   const handleLogout = () => {
     logout();
+    sessionStorage.removeItem("accessToken");
     setToken(null);
-    setAuthView('login');
     setCurrentSong(null);
     setIsPlaying(false);
-    setPlayQueue([]);
   };
   // --- LOGIC ĐIỀU HƯỚNG MÀN HÌNH AUTH ---
   if (!token) {
@@ -167,6 +166,31 @@ export default function App() {
   // --- GIAO DIỆN CHÍNH (KHI ĐÃ LOGIN) ---
   return (
     <div className="flex h-screen bg-gradient-to-br from-blue-700 via-cyan-600 to-cyan-400 text-white overflow-hidden">
+      {/* ✅ MODAL ĐĂNG NHẬP (Lớp phủ) */}
+      {showAuthModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-md">
+            <button
+              onClick={() => setShowAuthModal(false)}
+              className="absolute -top-10 right-0 text-white hover:text-cyan-400 flex items-center gap-2"
+            >
+              <X className="w-6 h-6" /> Đóng
+            </button>
+
+            {authView === 'login' ? (
+              <LoginForm
+                onLoginSuccess={handleAuthSuccess}
+                onSwitchToRegister={() => setAuthView('register')}
+              />
+            ) : (
+              <RegisterForm
+                onRegisterSuccess={handleAuthSuccess}
+                onSwitchToLogin={() => setAuthView('login')}
+              />
+            )}
+          </div>
+        </div>
+      )}
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-blue-900/80 backdrop-blur-lg lg:hidden"
