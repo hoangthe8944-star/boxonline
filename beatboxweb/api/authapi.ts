@@ -1,7 +1,14 @@
 import axios from "axios";
 
-// Cấu hình URL cơ sở cho Auth
+// --- CẤU HÌNH URL ---
 const BASE_URL = "https://backend-jfn4.onrender.com/api/auth";
+const USER_URL = "https://backend-jfn4.onrender.com/api/users";
+
+/**
+ * ✅ ĐƯỜNG DẪN ĐĂNG NHẬP GOOGLE
+ * Quan trọng: Không gọi qua Axios. Dùng window.location.href = GOOGLE_AUTH_URL
+ */
+export const GOOGLE_AUTH_URL = "https://backend-jfn4.onrender.com/oauth2/authorization/google";
 
 // ====================================================
 // 1. TYPE DEFINITIONS (INTERFACES)
@@ -19,22 +26,21 @@ export interface LoginRequest {
   password: string;
 }
 
-// Cập nhật để chứa trạng thái xác thực và email liên kết
+// Interface này khớp với JwtResponse bên Backend
 export interface JwtResponse {
   token: string;
   id: string;
   username: string;
   email: string;
   roles: string[];
-  isVerified: boolean;      // ✅ Trạng thái xác thực email
-  linkedEmails?: string[];  // ✅ Danh sách email phụ đã liên kết
+  isVerified: boolean;      // Trạng thái xác thực email
+  linkedEmails?: string[];  // Danh sách email phụ
 }
 
 // ====================================================
-// 2. API CALLS (AXIOS)
+// 2. API CALLS (XỬ LÝ ĐĂNG NHẬP/ĐĂNG KÝ)
 // ====================================================
 
-// Cấu hình chung cho Headers (để tránh lỗi ngrok và CORS)
 const config = {
   headers: {
     "Content-Type": "application/json",
@@ -44,72 +50,71 @@ const config = {
 };
 
 /**
- * Đăng ký tài khoản mới
+ * Đăng ký tài khoản mới (Trả về thông báo yêu cầu check mail)
  */
 export const registerUser = (data: RegisterRequest) =>
   axios.post(`${BASE_URL}/register`, data, config);
 
 /**
- * Xác thực email chính (Dùng trong trang VerifyPage)
+ * Xác thực email (Gọi từ trang VerifyPage)
  */
 export const verifyEmail = (token: string) =>
   axios.get(`${BASE_URL}/verify?token=${token}`, config);
 
 /**
- * Đăng nhập
+ * Đăng nhập thủ công bằng Email/Password
  */
 export const loginUser = (data: LoginRequest) =>
   axios.post<JwtResponse>(`${BASE_URL}/login`, data, config);
 
 /**
- * Yêu cầu liên kết thêm email phụ
+ * Yêu cầu liên kết thêm email phụ (Cần JWT)
  */
 export const requestLinkEmail = (newEmail: string) => {
   const token = getAccessToken();
   return axios.post(`${BASE_URL}/link-request?newEmail=${newEmail}`, {}, {
     headers: {
       ...config.headers,
-      "Authorization": `Bearer ${token}` // Gửi kèm Token để xác thực người dùng hiện tại
+      "Authorization": `Bearer ${token}`
     }
   });
 };
 
 /**
- * Lấy lại thông tin Profile mới nhất (Để cập nhật isVerified sau khi user click link)
+ * Lấy thông tin chi tiết người dùng hiện tại (Profile)
+ * Thường gọi sau khi Login Google thành công để lấy Username/Roles
  */
 export const getMyProfile = () => {
   const token = getAccessToken();
-  // Giả sử bạn có endpoint lấy thông tin cá nhân
-  return axios.get(`https://backend-jfn4.onrender.com/api/users/me`, {
+  return axios.get<JwtResponse>(`${USER_URL}/me`, {
     headers: {
-      "Authorization": `Bearer ${token}`,
-      "ngrok-skip-browser-warning": "69420"
+      ...config.headers,
+      "Authorization": `Bearer ${token}`
     }
   });
 };
 
 // ====================================================
 // 3. SESSION MANAGEMENT (SESSION STORAGE)
-// ✅ Dữ liệu sẽ tự xóa khi người dùng đóng Tab trình duyệt
 // ====================================================
 
 /**
- * Lưu phiên đăng nhập thành công
+ * Lưu thông tin đăng nhập vào Session (Mất khi đóng Tab)
  */
 export const setUserSession = (data: JwtResponse) => {
-  sessionStorage.setItem("accessToken", data.token);
+  if (data.token) sessionStorage.setItem("accessToken", data.token);
   sessionStorage.setItem("user", JSON.stringify(data));
 };
 
 /**
- * Lấy mã Token hiện tại
+ * Lấy token từ Session
  */
 export const getAccessToken = () => {
   return sessionStorage.getItem("accessToken");
 };
 
 /**
- * Lấy thông tin người dùng đang đăng nhập
+ * Lấy object User hiện tại
  */
 export const getCurrentUser = (): JwtResponse | null => {
   const userStr = sessionStorage.getItem("user");
@@ -124,15 +129,17 @@ export const getCurrentUser = (): JwtResponse | null => {
 };
 
 /**
- * Kiểm tra xem người dùng đã thực hiện verify email chưa
+ * Kiểm tra nhanh trạng thái Verified
  */
 export const checkIsVerified = (): boolean => {
   const user = getCurrentUser();
+  // Nếu là Admin thì mặc định true, nếu là User thì check field isVerified
+  if (user?.roles.includes('ROLE_ADMIN')) return true;
   return user ? user.isVerified : false;
 };
 
 /**
- * Đăng xuất - Xóa toàn bộ dữ liệu phiên làm việc
+ * Đăng xuất
  */
 export const logout = () => {
   sessionStorage.removeItem("accessToken");
