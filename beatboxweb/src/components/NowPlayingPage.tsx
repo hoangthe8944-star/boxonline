@@ -63,28 +63,33 @@ export function NowPlayingPage({ currentSong, isPlaying, onPlaySong, onTogglePla
   const [upNextSongs, setUpNextSongs] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+ const shuffleArray = (array: Song[]) => {
+    return [...array].sort(() => Math.random() - 0.5);
+  };
+  
   // Logic gọi API đã đúng, không cần thay đổi
   useEffect(() => {
     if (!currentSong) return;
 
-    const fetchUpNextSongs = async () => {
+    const fetchAndRefreshQueue = async () => {
       setIsLoading(true);
-      setError(null);
       try {
-        const response = await getTrendingSongs(15);
-        const filteredSongs = response.data.filter(song => song.id !== currentSong.id);
-        setUpNextSongs(filteredSongs);
+        // Lấy 20 bài từ trending
+        const response = await getTrendingSongs(20);
+        // Trộn ngẫu nhiên để danh sách "luôn đổi mới"
+        const shuffled = shuffleArray(response.data);
+        // Loại bỏ bài đang phát ra khỏi danh sách "Tiếp theo"
+        const filtered = shuffled.filter(s => s.id !== currentSong.id);
+        setUpNextSongs(filtered);
       } catch (err) {
-        console.error("Lỗi khi tải danh sách phát tiếp theo:", err);
-        setError("Không thể tải danh sách phát.");
+        console.error("Lỗi tải danh sách:", err);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchUpNextSongs();
-  }, [currentSong]); 
+    fetchAndRefreshQueue();
+  }, [currentSong?.id]); // Chỉ chạy lại khi đổi sang bài hát KHÁC hoàn toàn
 
   const handleToggleLike = async () => {
     if (!currentSong) return;
@@ -192,7 +197,7 @@ export function NowPlayingPage({ currentSong, isPlaying, onPlaySong, onTogglePla
                   onClick={() => {
                     // ✅ BƯỚC 4: CẬP NHẬT onPlaySong VỚI CONTEXT LÀ DANH SÁCH 'upNextSongs'
                     onPlaySong(song, upNextSongs);
-                    setIsQueueOpen(false);
+                    // setIsQueueOpen(false);
                   }}
                   className="w-full flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg hover:bg-cyan-500/30 transition-all group"
                 >
