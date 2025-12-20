@@ -82,7 +82,7 @@ export const getRecentlyPlayedSongs = () => {
         return Promise.reject("No token");
     }
 
-    return axios.get(`${History_URL}/songs/history/recent`, {
+    return axios.get(`${History_URL}/history/recent`, {
         headers: {
             "Authorization": `Bearer ${token}`,
             "ngrok-skip-browser-warning": "true"
@@ -93,7 +93,7 @@ export const recordPlayback = (songId: string) => {
     const token = localStorage.getItem("accessToken");
 
     // Endpoint này là POST và không có body, chỉ cần URL
-    const fullUrl = `${History_URL}${songId}/playback`;
+    const fullUrl = `${History_URL}/${songId}/playback`;
 
     // Chúng ta không quan tâm đến kết quả trả về, chỉ cần gọi là được
     return axios.post(fullUrl, {}, { // Gửi một body rỗng {}
