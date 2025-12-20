@@ -16,8 +16,8 @@ export interface Song {
     artistName: string;
     albumName: string;
     coverUrl: string;
-    duration: number;      
-    streamUrl: string;     
+    duration: number;
+    streamUrl: string;
     status: 'PENDING' | 'PUBLISHED' | 'REJECTED';
     viewCount: number;
     isExplicit: boolean;
@@ -33,7 +33,7 @@ export interface Song {
  */
 export const getTrendingSongs = (limit: number = 10) => {
     return axios.get<Song[]>(`${PUBLIC_URL}/songs/trending?limit=${limit}`, {
-         headers: {
+        headers: {
             "ngrok-skip-browser-warning": "true"
         }
     });
@@ -45,7 +45,7 @@ export const getTrendingSongs = (limit: number = 10) => {
 export const searchPublicSongs = (query: string) => {
     // ✅ SỬA LỖI: Đổi tên tham số từ "query" thành "q" để khớp với backend
     return axios.get<Song[]>(`${PUBLIC_URL}/search?q=${encodeURIComponent(query)}`, {
-         headers: {
+        headers: {
             "ngrok-skip-browser-warning": "true"
         }
     });
@@ -68,17 +68,24 @@ export const getSongInfoAndIncrementView = (songId: string) => {
 
 export const getAllPublicSongs = () => {
     return axios.get<Song[]>(`${PUBLIC_URL}/songs/all`, {
-         headers: {
+        headers: {
             "ngrok-skip-browser-warning": "true"
         }
     });
 };
 export const getRecentlyPlayedSongs = () => {
     const token = localStorage.getItem("accessToken");
-    return axios.get<Song[]>(`${History_URL}songs/history/recent`, { // Giả sử endpoint của bạn là thế này
-         headers: {
-            "ngrok-skip-browser-warning": "true",
-            "Authorization": `Bearer ${token}` // Endpoint này yêu cầu xác thực
+    console.log("Token hiện tại:", token); // Dòng này để debug
+
+    if (!token) {
+        console.warn("Chưa có token, không thể lấy lịch sử");
+        return Promise.reject("No token");
+    }
+
+    return axios.get(`${History_URL}/songs/history/recent`, {
+        headers: {
+            "Authorization": `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "true"
         }
     });
 };
@@ -90,7 +97,7 @@ export const recordPlayback = (songId: string) => {
 
     // Chúng ta không quan tâm đến kết quả trả về, chỉ cần gọi là được
     return axios.post(fullUrl, {}, { // Gửi một body rỗng {}
-         headers: {
+        headers: {
             "ngrok-skip-browser-warning": "true",
             "Authorization": `Bearer ${token}`
         }
