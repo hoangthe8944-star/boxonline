@@ -3,7 +3,7 @@ import axios from 'axios';
 // --- CẤU HÌNH URL ---
 // Sử dụng process.env để linh hoạt hơn giữa môi trường dev và production
 const PUBLIC_URL = 'https://backend-jfn4.onrender.com/api/public';
-const History_URL = 'https://backend-jfn4.onrender.com/api';
+const History_URL = 'https://backend-jfn4.onrender.com/api/songs';
 
 
 // ====================================================
