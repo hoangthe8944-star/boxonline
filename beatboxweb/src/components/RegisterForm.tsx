@@ -20,6 +20,12 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
+    // ✅ Hàm xử lý xác thực Google
+    const handleGoogleAuth = () => {
+        // Đường dẫn đến endpoint OAuth2 trên Backend của bạn
+        window.location.href = "https://backend-jfn4.onrender.com/oauth2/authorization/google";
+    };
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setErrorMessage("");
@@ -69,14 +75,12 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
     };
 
     return (
-        // ĐÃ ĐỔI TẤT CẢ CLASS TỪ "lp-" SANG "rp-" ĐỂ ĂN CSS MỚI
         <div className="rp-wrapper">
             <div className="rp-container">
                 <div className="rp-bg-image"></div>
                 <div className="rp-bg-overlay"></div>
 
                 <div className="rp-card">
-                    {/* Header: Class "rp-header" trong CSS có display:flex nên nó sẽ nằm ngang */}
                     <div className="rp-header">
                         <div className="rp-logo-circle">
                             <Music color="white" size={24} />
@@ -89,7 +93,6 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
                         </div>
                     </div>
 
-                    {/* Error Message */}
                     {errorMessage && (
                         <div className="rp-error-box">
                             <AlertCircle size={16} />
@@ -98,8 +101,6 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
                     )}
 
                     <form onSubmit={handleSubmit}>
-
-                        {/* Username */}
                         <div className="rp-input-group">
                             <label className="rp-label">Tên hiển thị</label>
                             <div className="rp-input-wrapper">
@@ -116,7 +117,6 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
                             </div>
                         </div>
 
-                        {/* Email */}
                         <div className="rp-input-group">
                             <label className="rp-label">Email</label>
                             <div className="rp-input-wrapper">
@@ -133,7 +133,6 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
                             </div>
                         </div>
 
-                        {/* Password */}
                         <div className="rp-input-group">
                             <label className="rp-label">Mật khẩu</label>
                             <div className="rp-input-wrapper">
@@ -158,7 +157,6 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
                             </div>
                         </div>
 
-                        {/* Confirm Password */}
                         <div className="rp-input-group">
                             <label className="rp-label">Nhập lại Mật khẩu</label>
                             <div className="rp-input-wrapper">
@@ -175,7 +173,6 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
                             </div>
                         </div>
 
-                        {/* Submit Button */}
                         <button type="submit" className="rp-submit-btn" disabled={isLoading}>
                             {isLoading ? (
                                 <>
@@ -188,7 +185,44 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
                         </button>
                     </form>
 
-                    {/* Footer */}
+                    {/* ✅ PHẦN THÊM MỚI: Dấu gạch ngang "Hoặc" */}
+                    <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0', gap: '10px' }}>
+                        <div style={{ flex: 1, height: '1px', backgroundColor: 'rgba(255,255,255,0.1)' }}></div>
+                        <span style={{ fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px' }}>Hoặc</span>
+                        <div style={{ flex: 1, height: '1px', backgroundColor: 'rgba(255,255,255,0.1)' }}></div>
+                    </div>
+
+                    {/* ✅ PHẦN THÊM MỚI: Nút Google */}
+                    <button
+                        type="button"
+                        onClick={handleGoogleAuth}
+                        disabled={isLoading}
+                        style={{
+                            width: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '12px',
+                            padding: '12px',
+                            backgroundColor: 'white',
+                            color: '#1e293b',
+                            borderRadius: '12px',
+                            fontWeight: '700',
+                            fontSize: '14px',
+                            cursor: isLoading ? 'not-allowed' : 'pointer',
+                            border: 'none',
+                            transition: 'all 0.2s',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                        }}
+                    >
+                        <img
+                            src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                            alt="Google"
+                            style={{ width: '20px', height: '20px' }}
+                        />
+                        Tiếp tục với Google
+                    </button>
+
                     <div className="rp-footer">
                         Đã có tài khoản?
                         <button onClick={onSwitchToLogin} className="rp-link">

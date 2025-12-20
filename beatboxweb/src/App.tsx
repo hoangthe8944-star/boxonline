@@ -19,6 +19,7 @@ import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
 import { logout } from '../api/authapi';
 import type { Song } from '../api/apiclient';
+import { VerifyPage } from './components/VerifyPage';
 import './index.css';
 
 
@@ -227,38 +228,44 @@ export default function App() {
         />
 
         <main className="flex-1 overflow-y-auto pb-32 lg:pb-28">
-          {currentPage === 'home' && <HomePage onPlaySong={handlePlaySong} />}
-          {currentPage === 'library' && <LibraryPage onPlaySong={handlePlaySong} />}
-          {currentPage === 'playlists' && <PlaylistsPage onPlaySong={handlePlaySong} />}
-          {currentPage === 'search' && <SearchPage searchQuery={searchQuery} onPlaySong={handlePlaySong} />}
-          {currentPage === 'playlists' && (
-            <PlaylistsPage
-              onPlaySong={handlePlaySong}
-              onCreateClick={() => setCurrentPage('create-playlist')}
-            />
+          {/* Trang Xác thực (Sẽ hiển thị toàn màn hình nếu URL là /#/verify) */}
+          {window.location.hash.includes('/verify') ? (
+            <VerifyPage />
+          ) : (
+            <>
+              {currentPage === 'home' && <HomePage onPlaySong={handlePlaySong} />}
+              {currentPage === 'library' && <LibraryPage onPlaySong={handlePlaySong} />}
+              {currentPage === 'playlists' && <PlaylistsPage onPlaySong={handlePlaySong} />}
+              {currentPage === 'search' && <SearchPage searchQuery={searchQuery} onPlaySong={handlePlaySong} />}
+              {currentPage === 'playlists' && (
+                <PlaylistsPage
+                  onPlaySong={handlePlaySong}
+                  onCreateClick={() => setCurrentPage('create-playlist')}
+                />
+              )}
+              {currentPage === 'nowplaying' &&
+                <NowPlayingPage
+                  currentSong={currentSong}
+                  isPlaying={isPlaying} // <--- Truyền state isPlaying xuống
+                  onTogglePlay={handleTogglePlay} // <--- Truyền hàm toggle xuống
+                  onPlaySong={(song) => handlePlaySong(song, playQueue)}
+                />
+              }
+              {currentPage === 'profile' && <ProfilePage onLogout={handleLogout} />}
+              {currentPage === 'liked-songs' && <LikedSongsPage onPlaySong={handlePlaySong} />}
+              {currentPage === 'recently-played' && <RecentlyPlayedPage onPlaySong={handlePlaySong} />}
+              {currentPage === 'create-playlist' && (
+                <CreatePlaylistPage
+                  onBack={() => setCurrentPage('playlists')}
+                  onSubmit={(playlist) => {
+                    // Here you would typically save the playlist
+                    console.log('Created playlist:', playlist);
+                    setCurrentPage('playlists');
+                  }}
+                />
+              )}
+            </>
           )}
-          {currentPage === 'nowplaying' &&
-            <NowPlayingPage
-              currentSong={currentSong}
-              isPlaying={isPlaying} // <--- Truyền state isPlaying xuống
-              onTogglePlay={handleTogglePlay} // <--- Truyền hàm toggle xuống
-              onPlaySong={(song) => handlePlaySong(song, playQueue)}
-            />
-          }
-          {currentPage === 'profile' && <ProfilePage onLogout={handleLogout} />}
-          {currentPage === 'liked-songs' && <LikedSongsPage onPlaySong={handlePlaySong} />}
-          {currentPage === 'recently-played' && <RecentlyPlayedPage onPlaySong={handlePlaySong} />}
-          {currentPage === 'create-playlist' && (
-            <CreatePlaylistPage
-              onBack={() => setCurrentPage('playlists')}
-              onSubmit={(playlist) => {
-                // Here you would typically save the playlist
-                console.log('Created playlist:', playlist);
-                setCurrentPage('playlists');
-              }}
-            />
-          )}
-
         </main>
 
         <MusicPlayer

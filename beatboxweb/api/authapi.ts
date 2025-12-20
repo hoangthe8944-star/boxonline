@@ -1,64 +1,118 @@
 import axios from "axios";
 
+// Cấu hình URL cơ sở cho Auth
 const BASE_URL = "https://backend-jfn4.onrender.com/api/auth";
+
+// ====================================================
+// 1. TYPE DEFINITIONS (INTERFACES)
+// ====================================================
 
 export interface RegisterRequest {
   username: string;
   email: string;
   password: string;
-  role?: string[]; // Optional
+  role?: string[];
 }
 
-
-// --- INTERFACES ---
 export interface LoginRequest {
   email: string;
   password: string;
 }
 
+// Cập nhật để chứa trạng thái xác thực và email liên kết
 export interface JwtResponse {
   token: string;
   id: string;
   username: string;
   email: string;
   roles: string[];
+  isVerified: boolean;      // ✅ Trạng thái xác thực email
+  linkedEmails?: string[];  // ✅ Danh sách email phụ đã liên kết
 }
 
-// --- API CALLS ---
+// ====================================================
+// 2. API CALLS (AXIOS)
+// ====================================================
 
+// Cấu hình chung cho Headers (để tránh lỗi ngrok và CORS)
+const config = {
+  headers: {
+    "Content-Type": "application/json",
+    "ngrok-skip-browser-warning": "69420"
+  },
+  withCredentials: true
+};
+
+/**
+ * Đăng ký tài khoản mới
+ */
 export const registerUser = (data: RegisterRequest) =>
-  axios.post<JwtResponse>(`${BASE_URL}/register`, data, {
-    headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "69420" },
-    withCredentials: true
-  });
+  axios.post(`${BASE_URL}/register`, data, config);
 
+/**
+ * Xác thực email chính (Dùng trong trang VerifyPage)
+ */
+export const verifyEmail = (token: string) =>
+  axios.get(`${BASE_URL}/verify?token=${token}`, config);
 
-// 1. Gửi login request
+/**
+ * Đăng nhập
+ */
 export const loginUser = (data: LoginRequest) =>
-  axios.post<JwtResponse>(`${BASE_URL}/login`, data, {
+  axios.post<JwtResponse>(`${BASE_URL}/login`, data, config);
+
+/**
+ * Yêu cầu liên kết thêm email phụ
+ */
+export const requestLinkEmail = (newEmail: string) => {
+  const token = getAccessToken();
+  return axios.post(`${BASE_URL}/link-request?newEmail=${newEmail}`, {}, {
     headers: {
-      "Content-Type": "application/json",
-      "ngrok-skip-browser-warning": "69420"
-    },
-    withCredentials: true // Quan trọng để tránh lỗi CORS 403
+      ...config.headers,
+      "Authorization": `Bearer ${token}` // Gửi kèm Token để xác thực người dùng hiện tại
+    }
   });
+};
 
-// --- SESSION MANAGEMENT (LOCAL STORAGE) ---
+/**
+ * Lấy lại thông tin Profile mới nhất (Để cập nhật isVerified sau khi user click link)
+ */
+export const getMyProfile = () => {
+  const token = getAccessToken();
+  // Giả sử bạn có endpoint lấy thông tin cá nhân
+  return axios.get(`https://backend-jfn4.onrender.com/api/users/me`, {
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "ngrok-skip-browser-warning": "69420"
+    }
+  });
+};
 
-// 2. Lưu session sau khi login thành công
+// ====================================================
+// 3. SESSION MANAGEMENT (SESSION STORAGE)
+// ✅ Dữ liệu sẽ tự xóa khi người dùng đóng Tab trình duyệt
+// ====================================================
+
+/**
+ * Lưu phiên đăng nhập thành công
+ */
 export const setUserSession = (data: JwtResponse) => {
-  localStorage.setItem("accessToken", data.token);
-  localStorage.setItem("user", JSON.stringify(data));
+  sessionStorage.setItem("accessToken", data.token);
+  sessionStorage.setItem("user", JSON.stringify(data));
 };
 
-// 3. Lấy token (để kẹp vào header các request khác)
+/**
+ * Lấy mã Token hiện tại
+ */
 export const getAccessToken = () => {
-  return localStorage.getItem("accessToken");
+  return sessionStorage.getItem("accessToken");
 };
 
-// 4. Lấy thông tin User hiện tại (để hiển thị tên, avatar...)
+/**
+ * Lấy thông tin người dùng đang đăng nhập
+ */
 export const getCurrentUser = (): JwtResponse | null => {
-  const userStr = localStorage.getItem("user");
+  const userStr = sessionStorage.getItem("user");
   if (userStr) {
     try {
       return JSON.parse(userStr);
@@ -69,13 +123,18 @@ export const getCurrentUser = (): JwtResponse | null => {
   return null;
 };
 
-// 5. Đăng xuất (Logout)
-export const logout = () => {
-  // Xóa sạch dữ liệu trong LocalStorage
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("user");
+/**
+ * Kiểm tra xem người dùng đã thực hiện verify email chưa
+ */
+export const checkIsVerified = (): boolean => {
+  const user = getCurrentUser();
+  return user ? user.isVerified : false;
+};
 
-  // Lưu ý: Vì dùng JWT stateless, ta chỉ cần xóa ở Client là xong.
-  // Nếu sau này bạn muốn làm chặt chẽ hơn (Blacklist token), 
-  // bạn có thể gọi thêm axios.post(`${BASE_URL}/logout`) tại đây.
+/**
+ * Đăng xuất - Xóa toàn bộ dữ liệu phiên làm việc
+ */
+export const logout = () => {
+  sessionStorage.removeItem("accessToken");
+  sessionStorage.removeItem("user");
 };
