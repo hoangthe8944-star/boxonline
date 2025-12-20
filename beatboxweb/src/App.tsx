@@ -66,64 +66,81 @@ export default function App() {
 
   // Hàm được gọi khi người dùng chọn một bài hát để phát
   // Nó cũng nhận một danh sách phát (context) để tạo hàng đợi
-  const handlePlaySong = (song: Song, contextPlaylist: Song[] = []) => {
-    setCurrentSong(song);
-    setIsPlaying(true); // Tự động phát nhạc khi chọn
-
-    // Nếu có danh sách phát đi kèm, tạo hàng đợi mới
-    const newQueue = contextPlaylist.length > 0 ? contextPlaylist : [song];
-    setPlayQueue(newQueue);
-
-    // Tìm vị trí của bài hát trong hàng đợi mới
-    const songIndex = newQueue.findIndex(s => s.id === song.id);
-    setCurrentQueueIndex(songIndex !== -1 ? songIndex : 0);
+  // ✅ CẬP NHẬT: Hàm phát nhạc thông minh hơn
+  const handlePlaySong = async (song: Song, contextPlaylist: Song[] = []) => {
     try {
-      recordPlayback(song.id);
-      console.log(`Đã ghi nhận lượt nghe cho bài hát: ${song.title}`);
+      // 1. Thiết lập bài hát hiện tại
+      setCurrentSong(song);
+      setIsPlaying(true);
+
+      // 2. "LUÔN ĐỔI MỚI" DANH SÁCH: 
+      // Nếu có context (ví dụ: danh sách từ Search hoặc Trending), nạp toàn bộ vào Queue
+      if (contextPlaylist.length > 0) {
+        setPlayQueue(contextPlaylist);
+        const index = contextPlaylist.findIndex(s => s.id === song.id);
+        setCurrentQueueIndex(index !== -1 ? index : 0);
+      } else {
+        // Nếu phát lẻ loi, tự tạo Queue chỉ có 1 bài (hoặc có thể lấy từ Trending làm mặc định)
+        setPlayQueue([song]);
+        setCurrentQueueIndex(0);
+      }
+
+      // 3. Ghi nhận lượt nghe (Gọi API an toàn)
+      if (token) {
+        // recordPlayback đã được sửa lỗi nối chuỗi URL trong apiclient
+        await recordPlayback(song.id);
+        console.log(`Đã ghi nhận lượt nghe: ${song.title}`);
+      }
     } catch (error) {
-      console.error("Lỗi khi ghi nhận lượt nghe:", error);
+      console.error("Lỗi khi xử lý phát nhạc:", error);
     }
   };
 
-  // Hàm bật/tắt phát nhạc
+  // ✅ CẬP NHẬT: Chuyển bài tiếp theo
+  const handleNextSong = () => {
+    if (playQueue.length === 0) return;
+
+    let nextIndex = currentQueueIndex + 1;
+
+    // Nếu đi đến cuối danh sách, quay lại bài đầu tiên (Loop)
+    if (nextIndex >= playQueue.length) {
+      nextIndex = 0;
+    }
+
+    const nextSong = playQueue[nextIndex];
+    setCurrentQueueIndex(nextIndex);
+    setCurrentSong(nextSong);
+    setIsPlaying(true);
+
+    // Ghi nhận lượt nghe cho bài tiếp theo
+    if (token) recordPlayback(nextSong.id).catch(console.error);
+  };
+
+  // ✅ CẬP NHẬT: Quay lại bài trước
+  const handlePrevSong = () => {
+    if (playQueue.length === 0) return;
+
+    let prevIndex = currentQueueIndex - 1;
+
+    // Nếu đang ở bài đầu mà nhấn back, quay xuống bài cuối cùng
+    if (prevIndex < 0) {
+      prevIndex = playQueue.length - 1;
+    }
+
+    const prevSong = playQueue[prevIndex];
+    setCurrentQueueIndex(prevIndex);
+    setCurrentSong(prevSong);
+    setIsPlaying(true);
+
+    if (token) recordPlayback(prevSong.id).catch(console.error);
+  };  // Các hàm xử lý xác thực
+  const handleAuthSuccess = (newToken: string) => {
+    setToken(newToken);
+  };
   const handleTogglePlay = () => {
     if (currentSong) {
       setIsPlaying(prev => !prev);
     }
-  };
-
-  // Hàm chuyển đến bài hát tiếp theo trong hàng đợi
-  const handleNextSong = () => {
-    if (playQueue.length === 0) return;
-    // Sử dụng toán tử modulo để lặp lại danh sách phát
-    const nextIndex = (currentQueueIndex + 1) % playQueue.length;
-    setCurrentQueueIndex(nextIndex);
-    setCurrentSong(playQueue[nextIndex]);
-    setIsPlaying(true);
-     try {
-      recordPlayback(playQueue[nextIndex].id);
-    } catch (error) {
-      console.error("Lỗi khi ghi nhận lượt nghe cho bài hát tiếp theo:", error);
-    }
-  };
-
-  // Hàm quay lại bài hát trước đó trong hàng đợi
-  const handlePrevSong = () => {
-    if (playQueue.length === 0) return;
-    // Phép toán modulo cho số âm trong JS
-    const prevIndex = (currentQueueIndex - 1 + playQueue.length) % playQueue.length;
-    setCurrentQueueIndex(prevIndex);
-    setCurrentSong(playQueue[prevIndex]);
-    setIsPlaying(true);
-    try {
-      recordPlayback(playQueue[prevIndex].id);
-    } catch (error) {
-      console.error("Lỗi khi ghi nhận lượt nghe cho bài hát trước đó:", error);
-    }
-  };
-  // Các hàm xử lý xác thực
-  const handleAuthSuccess = (newToken: string) => {
-    setToken(newToken);
   };
 
   const handleLogout = () => {
@@ -201,8 +218,8 @@ export default function App() {
           {currentPage === 'playlists' && <PlaylistsPage onPlaySong={handlePlaySong} />}
           {currentPage === 'search' && <SearchPage searchQuery={searchQuery} onPlaySong={handlePlaySong} />}
           {currentPage === 'playlists' && (
-            <PlaylistsPage 
-              onPlaySong={handlePlaySong} 
+            <PlaylistsPage
+              onPlaySong={handlePlaySong}
               onCreateClick={() => setCurrentPage('create-playlist')}
             />
           )}
@@ -235,7 +252,7 @@ export default function App() {
           isPlaying={isPlaying} // <--- Truyền state isPlaying xuống
           onTogglePlay={handleTogglePlay} // <--- Truyền hàm toggle xuống
           onClickPlayer={() => currentSong && setCurrentPage('nowplaying')}
-          onNextSong={handleNextSong} 
+          onNextSong={handleNextSong}
           onPrevSong={handlePrevSong}
         // Thêm các hàm xử lý next/prev sau này
         />
