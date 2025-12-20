@@ -59,7 +59,7 @@ export const searchPublicSongs = (query: string) => {
 export const getSongInfoAndIncrementView = (songId: string) => {
     // Backend của bạn xử lý việc tăng view trong endpoint GET /info
     // Vì vậy, không cần hàm incrementViewCount riêng nữa.
-    return axios.get<Song>(`${PUBLIC_URL}/songs/${songId}/info`, {
+    return axios.get<Song>(`${PUBLIC_URL}${songId}/info`, {
         headers: {
             "ngrok-skip-browser-warning": "true"
         }
@@ -86,7 +86,7 @@ export const recordPlayback = (songId: string) => {
     const token = localStorage.getItem("accessToken");
 
     // Endpoint này là POST và không có body, chỉ cần URL
-    const fullUrl = `${History_URL}/${songId}/playback`;
+    const fullUrl = `${History_URL}${songId}/playback`;
 
     // Chúng ta không quan tâm đến kết quả trả về, chỉ cần gọi là được
     return axios.post(fullUrl, {}, { // Gửi một body rỗng {}
