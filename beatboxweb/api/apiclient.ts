@@ -3,7 +3,7 @@ import axios from 'axios';
 // --- CẤU HÌNH URL ---
 // Sử dụng process.env để linh hoạt hơn giữa môi trường dev và production
 const PUBLIC_URL = 'https://backend-jfn4.onrender.com/api/public';
-const History_URL = 'https://backend-jfn4.onrender.com/api/songs';
+const History_URL = 'https://backend-jfn4.onrender.com/api';
 
 
 // ====================================================
@@ -75,7 +75,7 @@ export const getAllPublicSongs = () => {
 };
 export const getRecentlyPlayedSongs = () => {
     const token = localStorage.getItem("accessToken");
-    return axios.get<Song[]>(`${History_URL}/history/recent`, { // Giả sử endpoint của bạn là thế này
+    return axios.get<Song[]>(`${History_URL}songs/history/recent`, { // Giả sử endpoint của bạn là thế này
          headers: {
             "ngrok-skip-browser-warning": "true",
             "Authorization": `Bearer ${token}` // Endpoint này yêu cầu xác thực
