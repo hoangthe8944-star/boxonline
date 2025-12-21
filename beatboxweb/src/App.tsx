@@ -40,11 +40,23 @@ export default function App() {
 
   // ✅ THEO DÕI THAY ĐỔI URL (Để xử lý trang LoginSuccess và Verify)
   const [currentHash, setCurrentHash] = useState(window.location.hash);
-  useEffect(() => {
-    const handleHashChange = () => setCurrentHash(window.location.hash);
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+useEffect(() => {
+    const savedToken = sessionStorage.getItem("accessToken");
+    if (savedToken) setToken(savedToken);
   }, []);
+
+  // ✅ 2. TÁCH BIỆT HOÀN TOÀN TRANG ĐẶC BIỆT
+  // Nếu là trang Google trả về hoặc trang Verify, KHÔNG hiện Sidebar/Player
+  const isSpecialPage = window.location.hash.includes('/login-success') || window.location.hash.includes('/verify');
+
+  if (isSpecialPage) {
+    return (
+      <main className="h-screen bg-slate-950">
+        {window.location.hash.includes('/login-success') && <LoginSuccess />}
+        {window.location.hash.includes('/verify') && <VerifyPage />}
+      </main>
+    );
+  }
 
   // ✅ HÀM PHÁT NHẠC (Chặn nếu chưa login)
   const handlePlaySong = (song: Song, contextPlaylist: Song[] = []) => {
@@ -95,8 +107,6 @@ export default function App() {
     setIsPlaying(false);
     setCurrentPage('home');
   };
-
-  const isSpecialPage = currentHash.includes('/verify') || currentHash.includes('/login-success');
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-blue-700 via-cyan-600 to-cyan-400 text-white overflow-hidden relative">
