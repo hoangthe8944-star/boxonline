@@ -1,5 +1,4 @@
-import { useState } from 'react';
-
+import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
@@ -13,33 +12,14 @@ import { ProfilePage } from './components/ProfilePage';
 import { CreatePlaylistPage } from './components/CreatePlaylistPage';
 import { LikedSongsPage } from './components/LikedSongsPage';
 import { RecentlyPlayedPage } from './components/RecentlyPlayedPage';
+import { VerifyPage } from './components/VerifyPage';
+import { LoginSuccess } from './components/LoginSuccess'; // ✅ Đảm bảo bạn đã tạo file này
 import { recordPlayback } from '../api/apiclient';
-
 import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
-import { logout } from '../api/authapi';
+import { logout, getCurrentUser } from '../api/authapi';
 import type { Song } from '../api/apiclient';
-import { VerifyPage } from './components/VerifyPage';
 import './index.css';
-
-
-// export interface SongApp {
-//   id: string;
-//   title: string;
-//   artist: string;
-//   album: string;
-//   duration: string;
-//   coverUrl: string;
-//   streamUrl?: string; // Quan trọng: Bao gồm cả streamUrl
-// }
-
-export interface Playlist {
-  id: string;
-  name: string;
-  cover: string;
-  songCount: number;
-  description?: string;
-}
 
 export default function App() {
   // --- STATE QUẢN LÝ GIAO DIỆN ---
@@ -50,28 +30,26 @@ export default function App() {
   // --- STATE QUẢN LÝ XÁC THỰC ---
   const [token, setToken] = useState<string | null>(sessionStorage.getItem("accessToken"));
   const [authView, setAuthView] = useState<'login' | 'register'>('login');
-
-  // ✅ BƯỚC 2: "NGUỒN CHÂN LÝ DUY NHẤT" VỀ TRẠNG THÁI PHÁT NHẠC
-  // -------------------------------------------------------------------
-  const [currentSong, setCurrentSong] = useState<Song | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
-  // State để quản lý hàng đợi phát nhạc
+  // --- STATE PHÁT NHẠC ---
+  const [currentSong, setCurrentSong] = useState<Song | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [playQueue, setPlayQueue] = useState<Song[]>([]);
   const [currentQueueIndex, setCurrentQueueIndex] = useState<number>(0);
-  // -------------------------------------------------------------------
 
+  // ✅ THEO DÕI THAY ĐỔI URL (Để xử lý trang LoginSuccess và Verify)
+  const [currentHash, setCurrentHash] = useState(window.location.hash);
+  useEffect(() => {
+    const handleHashChange = () => setCurrentHash(window.location.hash);
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
-  // ✅ BƯỚC 3: CẬP NHẬT CÁC HÀM XỬ LÝ NHẠC
-  // -------------------------------------------------------------------
-
-  // Hàm được gọi khi người dùng chọn một bài hát để phát
-  // Nó cũng nhận một danh sách phát (context) để tạo hàng đợi
-  // ✅ CẬP NHẬT: Hàm phát nhạc thông minh hơn
+  // ✅ HÀM PHÁT NHẠC (Chặn nếu chưa login)
   const handlePlaySong = (song: Song, contextPlaylist: Song[] = []) => {
-    // Nếu chưa đăng nhập, không cho nghe nhạc và hiện Modal
-    if (!token) {
+    if (!sessionStorage.getItem("accessToken")) {
+      setAuthView('login');
       setShowAuthModal(true);
       return;
     }
@@ -83,139 +61,82 @@ export default function App() {
     const songIndex = newQueue.findIndex(s => s.id === song.id);
     setCurrentQueueIndex(songIndex !== -1 ? songIndex : 0);
 
-    // Record playback
     recordPlayback(song.id).catch(err => console.error("API Playback Error:", err));
-  };  // ✅ CẬP NHẬT: Chuyển bài tiếp theo
-  const handleNextSong = () => {
-    if (playQueue.length === 0) return;
-
-    let nextIndex = currentQueueIndex + 1;
-
-    // Nếu đi đến cuối danh sách, quay lại bài đầu tiên (Loop)
-    if (nextIndex >= playQueue.length) {
-      nextIndex = 0;
-    }
-
-    const nextSong = playQueue[nextIndex];
-    setCurrentQueueIndex(nextIndex);
-    setCurrentSong(nextSong);
-    setIsPlaying(true);
-
-    // Ghi nhận lượt nghe cho bài tiếp theo
-    if (token) recordPlayback(nextSong.id).catch(console.error);
   };
 
-  // ✅ CẬP NHẬT: Quay lại bài trước
-  const handlePrevSong = () => {
-    if (playQueue.length === 0) return;
-
-    let prevIndex = currentQueueIndex - 1;
-
-    // Nếu đang ở bài đầu mà nhấn back, quay xuống bài cuối cùng
-    if (prevIndex < 0) {
-      prevIndex = playQueue.length - 1;
-    }
-
-    const prevSong = playQueue[prevIndex];
-    setCurrentQueueIndex(prevIndex);
-    setCurrentSong(prevSong);
+  const handleNextSong = () => {
+    if (!token || playQueue.length === 0) return;
+    const nextIndex = (currentQueueIndex + 1) % playQueue.length;
+    setCurrentQueueIndex(nextIndex);
+    setCurrentSong(playQueue[nextIndex]);
     setIsPlaying(true);
+  };
 
-    if (token) recordPlayback(prevSong.id).catch(console.error);
-  };  // Các hàm xử lý xác thực
+  const handlePrevSong = () => {
+    if (!token || playQueue.length === 0) return;
+    const prevIndex = (currentQueueIndex - 1 + playQueue.length) % playQueue.length;
+    setCurrentQueueIndex(prevIndex);
+    setCurrentSong(playQueue[prevIndex]);
+    setIsPlaying(true);
+  };
+
+  // ✅ XỬ LÝ AUTH THÀNH CÔNG (Dùng cho cả Login và Register mới)
   const handleAuthSuccess = (newToken: string) => {
     setToken(newToken);
-    sessionStorage.setItem("accessToken", newToken); // Lưu vào session
-    setShowAuthModal(false); // Đóng modal sau khi đăng nhập xong
-  };
-  const handleTogglePlay = () => {
-    if (currentSong) {
-      setIsPlaying(prev => !prev);
-    }
+    // sessionStorage đã được set bên trong LoginForm/RegisterForm gọi setUserSession
+    setShowAuthModal(false);
+    window.location.reload(); // Làm mới để cập nhật toàn bộ trạng thái User
   };
 
   const handleLogout = () => {
     logout();
-    sessionStorage.removeItem("accessToken");
     setToken(null);
     setCurrentSong(null);
     setIsPlaying(false);
+    setCurrentPage('home');
   };
-  // --- LOGIC ĐIỀU HƯỚNG MÀN HÌNH AUTH ---
-  if (!token) {
-    const authBackgroundClass = "flex items-center justify-center min-h-screen bg-gray-900 bg-[url('https://images.unsplash.com/photo-1514525253440-b393452e8d26?auto=format&fit=crop&q=80')] bg-cover bg-center bg-no-repeat bg-blend-overlay";
-    if (authView === 'register') {
-      return (
-        <div className={authBackgroundClass}>
-          <RegisterForm
-            onRegisterSuccess={handleAuthSuccess}
-            onSwitchToLogin={() => setAuthView('login')}
-          />
-        </div>
-      );
-    }
-    return (
-      <div className={authBackgroundClass}>
-        <LoginForm
-          onLoginSuccess={handleAuthSuccess}
-          onSwitchToRegister={() => setAuthView('register')}
-        />
-      </div>
-    );
-  }
 
-  // --- GIAO DIỆN CHÍNH (KHI ĐÃ LOGIN) ---
+  const isSpecialPage = currentHash.includes('/verify') || currentHash.includes('/login-success');
+
   return (
-    <div className="flex h-screen bg-gradient-to-br from-blue-700 via-cyan-600 to-cyan-400 text-white overflow-hidden">
-      {/* ✅ MODAL ĐĂNG NHẬP (Lớp phủ) */}
+    <div className="flex h-screen bg-gradient-to-br from-blue-700 via-cyan-600 to-cyan-400 text-white overflow-hidden relative">
+      
+      {/* ✅ MODAL ĐĂNG NHẬP / ĐĂNG KÝ */}
       {showAuthModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
           <div className="relative w-full max-w-md">
             <button
               onClick={() => setShowAuthModal(false)}
-              className="absolute -top-10 right-0 text-white hover:text-cyan-400 flex items-center gap-2"
+              className="absolute -top-10 right-0 text-white hover:text-cyan-400 flex items-center gap-2 font-bold"
             >
               <X className="w-6 h-6" /> Đóng
             </button>
-
             {authView === 'login' ? (
-              <LoginForm
-                onLoginSuccess={handleAuthSuccess}
-                onSwitchToRegister={() => setAuthView('register')}
-              />
+              <LoginForm onLoginSuccess={handleAuthSuccess} onSwitchToRegister={() => setAuthView('register')} />
             ) : (
-              <RegisterForm
-                onRegisterSuccess={handleAuthSuccess}
-                onSwitchToLogin={() => setAuthView('login')}
-              />
+              <RegisterForm onRegisterSuccess={handleAuthSuccess} onSwitchToLogin={() => setAuthView('login')} />
             )}
           </div>
         </div>
       )}
-      <button
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-blue-900/80 backdrop-blur-lg lg:hidden"
-      >
-        <Menu className="w-6 h-6" />
-      </button>
 
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
+      {/* Sidebar - Menu bên trái */}
       <Sidebar
         currentPage={currentPage}
         onNavigate={(page) => {
-          setCurrentPage(page);
+          // Nếu vào các trang cá nhân mà chưa login thì hiện modal
+          if (!token && ['library', 'playlists', 'profile', 'liked-songs', 'recently-played'].includes(page)) {
+            setShowAuthModal(true);
+          } else {
+            setCurrentPage(page);
+          }
           setIsSidebarOpen(false);
         }}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
         onProfileClick={() => {
-          setCurrentPage('profile');
+          if (!token) setShowAuthModal(true);
+          else setCurrentPage('profile');
           setIsSidebarOpen(false);
         }}
       />
@@ -228,41 +149,36 @@ export default function App() {
         />
 
         <main className="flex-1 overflow-y-auto pb-32 lg:pb-28">
-          {/* Trang Xác thực (Sẽ hiển thị toàn màn hình nếu URL là /#/verify) */}
-          {window.location.hash.includes('/verify') ? (
-            <VerifyPage />
-          ) : (
+          {/* ✅ XỬ LÝ CÁC TRANG ĐẶC BIỆT (URL HASH) */}
+          {currentHash.includes('/verify') && <VerifyPage />}
+          {currentHash.includes('/login-success') && <LoginSuccess />}
+
+          {/* ✅ GIAO DIỆN CHÍNH */}
+          {!isSpecialPage && (
             <>
               {currentPage === 'home' && <HomePage onPlaySong={handlePlaySong} />}
-              {currentPage === 'library' && <LibraryPage onPlaySong={handlePlaySong} />}
-              {currentPage === 'playlists' && <PlaylistsPage onPlaySong={handlePlaySong} />}
               {currentPage === 'search' && <SearchPage searchQuery={searchQuery} onPlaySong={handlePlaySong} />}
-              {currentPage === 'playlists' && (
-                <PlaylistsPage
-                  onPlaySong={handlePlaySong}
-                  onCreateClick={() => setCurrentPage('create-playlist')}
-                />
+              
+              {/* Chỉ render các trang này nếu đã đăng nhập */}
+              {token && (
+                <>
+                  {currentPage === 'library' && <LibraryPage onPlaySong={handlePlaySong} />}
+                  {currentPage === 'playlists' && <PlaylistsPage onPlaySong={handlePlaySong} onCreateClick={() => setCurrentPage('create-playlist')} />}
+                  {currentPage === 'nowplaying' && <NowPlayingPage currentSong={currentSong} isPlaying={isPlaying} onTogglePlay={() => setIsPlaying(!isPlaying)} onPlaySong={handlePlaySong} />}
+                  {currentPage === 'profile' && <ProfilePage onLogout={handleLogout} />}
+                  {currentPage === 'liked-songs' && <LikedSongsPage onPlaySong={handlePlaySong} />}
+                  {currentPage === 'recently-played' && <RecentlyPlayedPage onPlaySong={handlePlaySong} />}
+                  {currentPage === 'create-playlist' && <CreatePlaylistPage onBack={() => setCurrentPage('playlists')} onSubmit={() => setCurrentPage('playlists')} />}
+                </>
               )}
-              {currentPage === 'nowplaying' &&
-                <NowPlayingPage
-                  currentSong={currentSong}
-                  isPlaying={isPlaying} // <--- Truyền state isPlaying xuống
-                  onTogglePlay={handleTogglePlay} // <--- Truyền hàm toggle xuống
-                  onPlaySong={(song) => handlePlaySong(song, playQueue)}
-                />
-              }
-              {currentPage === 'profile' && <ProfilePage onLogout={handleLogout} />}
-              {currentPage === 'liked-songs' && <LikedSongsPage onPlaySong={handlePlaySong} />}
-              {currentPage === 'recently-played' && <RecentlyPlayedPage onPlaySong={handlePlaySong} />}
-              {currentPage === 'create-playlist' && (
-                <CreatePlaylistPage
-                  onBack={() => setCurrentPage('playlists')}
-                  onSubmit={(playlist) => {
-                    // Here you would typically save the playlist
-                    console.log('Created playlist:', playlist);
-                    setCurrentPage('playlists');
-                  }}
-                />
+
+              {/* Nếu khách cố tình vào trang cá nhân bằng state thì nhắc login */}
+              {!token && ['library', 'profile', 'recently-played'].includes(currentPage) && (
+                 <div className="flex flex-col items-center justify-center h-full text-center p-10">
+                    <h2 className="text-2xl font-bold mb-4">Giai điệu dành riêng cho bạn</h2>
+                    <p className="text-blue-100 mb-8">Hãy đăng nhập để lưu lại lịch sử và bài hát yêu thích</p>
+                    <button onClick={() => setShowAuthModal(true)} className="px-8 py-3 bg-cyan-500 rounded-full font-bold hover:scale-105 transition-all">Đăng nhập ngay</button>
+                 </div>
               )}
             </>
           )}
@@ -270,12 +186,14 @@ export default function App() {
 
         <MusicPlayer
           currentSong={currentSong}
-          isPlaying={isPlaying} // <--- Truyền state isPlaying xuống
-          onTogglePlay={handleTogglePlay} // <--- Truyền hàm toggle xuống
+          isPlaying={isPlaying}
+          onTogglePlay={() => {
+            if (!token) setShowAuthModal(true);
+            else setIsPlaying(!isPlaying);
+          }}
           onClickPlayer={() => currentSong && setCurrentPage('nowplaying')}
           onNextSong={handleNextSong}
           onPrevSong={handlePrevSong}
-        // Thêm các hàm xử lý next/prev sau này
         />
       </div>
     </div>

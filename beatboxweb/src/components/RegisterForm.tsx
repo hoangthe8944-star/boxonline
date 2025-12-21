@@ -4,6 +4,7 @@ import { registerUser, setUserSession, type JwtResponse, type RegisterRequest } 
 
 // Import CSS riêng
 import "../register.css";
+import { useNavigate } from "react-router-dom";
 
 interface RegisterFormProps {
     onRegisterSuccess: (token: string) => void;
@@ -11,6 +12,7 @@ interface RegisterFormProps {
 }
 
 export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFormProps) {
+    const navigate = useNavigate();
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -26,7 +28,7 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
         window.location.href = "https://backend-jfn4.onrender.com/oauth2/authorization/google";
     };
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setErrorMessage("");
 
@@ -34,11 +36,6 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
             setErrorMessage("Mật khẩu xác nhận không khớp!");
             return;
         }
-        if (password.length < 6) {
-            setErrorMessage("Mật khẩu phải có ít nhất 6 ký tự.");
-            return;
-        }
-
         setIsLoading(true);
 
         try {
@@ -46,34 +43,35 @@ export function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFor
                 username,
                 email,
                 password,
-                role: ["USER"]
+                roles: ["USER"]
             };
 
+            // 1. Gọi API đăng ký
             const response = await registerUser(requestData);
             const data: JwtResponse = response.data;
 
-            if (!data.token) throw new Error("Đăng ký thành công nhưng không nhận được token.");
+            if (!data.token) throw new Error("Không nhận được token từ hệ thống.");
 
-            let userRoles = data.roles || (data as any).role || [];
-            if (!Array.isArray(userRoles)) userRoles = [userRoles];
+            // 2. Lưu phiên đăng nhập vào sessionStorage (Tắt tab là mất)
+            // Lưu ý: Đảm bảo authapi.ts của bạn dùng sessionStorage
+            setUserSession(data);
 
-            setUserSession({ ...data, roles: userRoles });
+            // 3. Thông báo cho App.tsx cập nhật state token
             onRegisterSuccess(data.token);
+
+            // 4. ✅ LỐI ĐI TỐT NHẤT: Về trang chủ ngay
+            alert("Đăng ký thành công! Chào mừng bạn đến với BeatBox.");
+            navigate("/"); 
+            window.location.reload(); // Reload nhẹ để header cập nhật tên User
 
         } catch (error: any) {
             console.error("Register error:", error);
-            if (error.response) {
-                setErrorMessage(error.response.data.message || error.response.data || "Đăng ký thất bại.");
-            } else if (error.request) {
-                setErrorMessage("Không kết nối được đến máy chủ.");
-            } else {
-                setErrorMessage("Đã xảy ra lỗi không xác định.");
-            }
+            const msg = error.response?.data?.message || error.response?.data || "Đăng ký thất bại.";
+            setErrorMessage(msg);
         } finally {
             setIsLoading(false);
         }
     };
-
     return (
         <div className="rp-wrapper">
             <div className="rp-container">
