@@ -88,7 +88,7 @@ export const getMyProfile = (explicitToken?: string) => {
   // Nếu có token truyền vào thì dùng luôn, nếu không thì lấy từ sessionStorage
   const token = explicitToken || sessionStorage.getItem("accessToken");
 
-  return axios.get<JwtResponse>(`${USER_URL}/me`, {
+  return axios.get<JwtResponse>(`${BASE_URL}/me`, {
     headers: {
       "Authorization": `Bearer ${token}`, 
       "ngrok-skip-browser-warning": "69420"
