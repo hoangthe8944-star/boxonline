@@ -84,16 +84,17 @@ export const requestLinkEmail = (newEmail: string) => {
  * Lấy thông tin chi tiết người dùng hiện tại (Profile)
  * Thường gọi sau khi Login Google thành công để lấy Username/Roles
  */
-export const getMyProfile = () => {
-  const token = getAccessToken();
+export const getMyProfile = (explicitToken?: string) => {
+  // Nếu có token truyền vào thì dùng luôn, nếu không thì lấy từ sessionStorage
+  const token = explicitToken || sessionStorage.getItem("accessToken");
+
   return axios.get<JwtResponse>(`${USER_URL}/me`, {
     headers: {
-      ...config.headers,
-      "Authorization": `Bearer ${token}`
+      "Authorization": `Bearer ${token}`, 
+      "ngrok-skip-browser-warning": "69420"
     }
   });
 };
-
 // ====================================================
 // 3. SESSION MANAGEMENT (SESSION STORAGE)
 // ====================================================
