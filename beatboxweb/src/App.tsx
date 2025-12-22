@@ -20,6 +20,15 @@ import { logout } from '../api/authapi';
 import type { Song } from '../api/apiclient';
 import './index.css';
 
+export interface Playlist {
+  id: string;
+  name: string;
+  cover: string;
+  songCount: number;
+  description?: string;
+}
+
+
 export default function App() {
   // --- STATE QUẢN LÝ ---
   const [currentPage, setCurrentPage] = useState<'home' | 'library' | 'playlists' | 'search' | 'nowplaying' | 'profile' | 'create-playlist' | 'liked-songs' | 'recently-played'>('home');
@@ -34,6 +43,8 @@ export default function App() {
   const [playQueue, setPlayQueue] = useState<Song[]>([]);
   const [currentQueueIndex, setCurrentQueueIndex] = useState<number>(0);
 
+
+  
   // ✅ 1. THEO DÕI URL HASH (Xử lý mượt mà cho GitHub Pages)
   const [currentHash, setCurrentHash] = useState(window.location.hash);
   useEffect(() => {
