@@ -146,3 +146,12 @@ export const logout = () => {
   sessionStorage.removeItem("accessToken");
   sessionStorage.removeItem("user");
 };
+
+
+export const setAccountPassword = (password: string) => {
+  const token = getAccessToken();
+  return axios.post(`${BASE_URL}/auth/set-password`, 
+    { password }, 
+    { headers: { "Authorization": `Bearer ${token}` } }
+  );
+};

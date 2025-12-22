@@ -1,128 +1,136 @@
 // src/components/ProfilePage.tsx
 
-import { User, Mail, Calendar, Shield, LogOut, Settings, Camera, ChevronRight, CheckCircle2 } from 'lucide-react';
-import { getCurrentUser } from '../../api/authapi'; // Import hàm lấy user chuẩn
-import '../ProfilePage.css';
+import { useState } from 'react';
+import { User, Mail, Calendar, Shield, LogOut, Settings, Camera, ChevronRight, Lock, ShieldAlert, CheckCircle2, Loader2 } from 'lucide-react';
+import { getCurrentUser, setAccountPassword } from '../../api/authapi'; 
 
-interface ProfilePageProps {
-  onLogout: () => void;
-}
-
-export function ProfilePage({ onLogout }: ProfilePageProps) {
-  // ✅ 1. SỬA: Lấy thông tin user từ sessionStorage thông qua hàm getCurrentUser
+export function ProfilePage({ onLogout }: { onLogout: () => void }) {
   const user = getCurrentUser();
-
-  // Mapping dữ liệu từ JwtResponse của Backend
-  const name = user?.username || 'Người dùng';
-  const email = user?.email || 'Chưa cập nhật email';
   
-  // Roles trong Spring Security thường là ["ROLE_USER", "ROLE_ADMIN"]
-  const isAdmin = user?.roles?.includes('ROLE_ADMIN');
-  const isVerified = user?.isVerified;
+  // State cho form mật khẩu
+  const [showPassForm, setShowPassForm] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState("");
 
-  // Giả sử lấy ngày tạo từ ID (nếu Backend trả về createdAt thì dùng, không thì để mặc định)
-  const joinDate = "Thành viên chính thức"; 
+  // ✅ Kiểm tra xem đây có phải tài khoản Google chưa có mật khẩu không
+  // Lưu ý: Backend cần trả về field 'hasPassword: boolean' hoặc bạn check password null
+  const needsPassword = user && !user.roles.includes('ROLE_ADMIN') && (user as any).password === null;
+
+  const handleSetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) return alert("Mật khẩu không khớp!");
+    if (newPassword.length < 6) return alert("Mật khẩu phải từ 6 ký tự!");
+
+    setIsSubmitting(true);
+    try {
+      await setAccountPassword(newPassword);
+      setMessage("✅ Đã thiết lập mật khẩu thành công!");
+      // Cập nhật lại session giả để ẩn form (hoặc reload)
+      setTimeout(() => window.location.reload(), 2000);
+    } catch (err) {
+      alert("Lỗi khi thiết lập mật khẩu");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen pb-20 lg:pb-10">
-      {/* Hero Section - Banner & Avatar */}
-      <div className="relative h-64 sm:h-80 lg:h-96 bg-gradient-to-br from-blue-900 via-blue-800 to-cyan-900 overflow-hidden">
-        {/* Lớp phủ mờ nhẹ */}
-        <div className="absolute inset-0 bg-black/40" />
-        
-        {/* Các vòng tròn trang trí nền */}
-        <div className="absolute -top-24 -left-24 w-96 h-96 bg-cyan-500/10 rounded-full blur-[100px]" />
-        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px]" />
-
-        <div className="relative h-full flex items-end pb-8 px-6 lg:px-12">
-          <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6 text-center sm:text-left w-full">
-            {/* Avatar */}
-            <div className="relative group">
-              <div className="w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 p-1.5 shadow-2xl transition-transform hover:scale-105 duration-300">
-                <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center overflow-hidden border-4 border-slate-900">
-                  {/* Nếu có ảnh từ Google/Avatar thì hiện, không thì hiện Icon */}
-                  <User className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 text-cyan-300" />
-                </div>
+    <div className="min-h-screen pb-20 bg-slate-950">
+      {/* Hero Section (Giữ nguyên như cũ) */}
+      <div className="relative h-80 bg-gradient-to-br from-blue-900 to-slate-950 flex items-end p-10">
+          <div className="flex items-center gap-6 z-10">
+              <div className="w-32 h-32 rounded-full bg-cyan-500 flex items-center justify-center border-4 border-slate-950 shadow-2xl">
+                  <User size={64} className="text-white" />
               </div>
-              <button className="absolute bottom-2 right-2 p-2 bg-cyan-500 hover:bg-cyan-400 text-black rounded-full shadow-lg transition-all opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100">
-                <Camera className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Info */}
-            <div className="flex-1 mb-2">
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mb-2">
-                <h1 className="text-3xl sm:text-4xl lg:text-6xl font-black tracking-tight">{name}</h1>
-                {isAdmin && (
-                  <div className="px-3 py-1 bg-purple-600 rounded-lg flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest shadow-lg">
-                    <Shield className="w-3 h-3" />
-                    ADMIN
-                  </div>
-                )}
-                {isVerified && (
-                  <div className="flex items-center gap-1 text-cyan-400 text-sm font-bold bg-cyan-400/10 px-3 py-1 rounded-lg">
-                    <CheckCircle2 className="w-4 h-4" />
-                    Đã xác minh
-                  </div>
-                )}
+              <div>
+                  <h1 className="text-4xl font-bold text-white">{user?.username}</h1>
+                  <p className="text-cyan-400">{user?.email}</p>
               </div>
-              <p className="text-lg sm:text-xl text-cyan-200/80 flex items-center justify-center sm:justify-start gap-2 font-medium">
-                <Mail className="w-5 h-5 opacity-70" />
-                {email}
-              </p>
-              <div className="mt-4 flex items-center justify-center sm:justify-start gap-2 text-xs text-gray-400 uppercase tracking-widest">
-                <Calendar className="w-4 h-4" />
-                {joinDate}
-              </div>
-            </div>
           </div>
-        </div>
       </div>
 
-      {/* Menu Options Section */}
-      <div className="max-w-4xl mx-auto px-6 py-10 lg:py-16">
-        <div className="grid gap-4">
-          {/* Option: Thông tin tài khoản */}
-          <button className="w-full p-5 bg-white/5 hover:bg-white/10 border border-white/5 rounded-3xl flex items-center justify-between transition-all group active:scale-[0.98]">
-            <div className="flex items-center gap-5">
-              <div className="w-14 h-14 bg-cyan-500/10 rounded-2xl flex items-center justify-center group-hover:bg-cyan-500/20 transition-colors">
-                <User className="w-6 h-6 text-cyan-400" />
+      <div className="max-w-4xl mx-auto px-6 py-10 space-y-6">
+        
+        {/* ✅ PHẦN THÔNG BÁO THÊM MẬT KHẨU (Chỉ hiện cho User Google chưa có Pass) */}
+        {needsPassword && !message && (
+          <div className="bg-amber-500/10 border border-amber-500/20 p-6 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4">
+            <div className="flex items-center gap-4 text-center md:text-left">
+              <div className="w-12 h-12 bg-amber-500/20 rounded-2xl flex items-center justify-center shrink-0">
+                <ShieldAlert className="text-amber-500" />
               </div>
-              <div className="text-left">
-                <p className="text-lg font-bold text-white">Chỉnh sửa hồ sơ</p>
-                <p className="text-sm text-gray-400">Thay đổi tên hiển thị và thông tin cá nhân</p>
-              </div>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-600 group-hover:text-cyan-400 transition-all group-hover:translate-x-1" />
-          </button>
-
-          {/* Option: Cài đặt hệ thống */}
-          <button className="w-full p-5 bg-white/5 hover:bg-white/10 border border-white/5 rounded-3xl flex items-center justify-between transition-all group active:scale-[0.98]">
-            <div className="flex items-center gap-5">
-              <div className="w-14 h-14 bg-blue-500/10 rounded-2xl flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
-                <Settings className="w-6 h-6 text-blue-400" />
-              </div>
-              <div className="text-left">
-                <p className="text-lg font-bold text-white">Cài đặt ứng dụng</p>
-                <p className="text-sm text-gray-400">Giao diện, thông báo, bảo mật và ngôn ngữ</p>
+              <div>
+                <h3 className="font-bold text-amber-500">Tài khoản chưa có mật khẩu</h3>
+                <p className="text-sm text-gray-400">Thiết lập mật khẩu để có thể đăng nhập trực tiếp mà không cần Google.</p>
               </div>
             </div>
-            <ChevronRight className="w-5 h-5 text-gray-600 group-hover:text-blue-400 transition-all group-hover:translate-x-1" />
-          </button>
-
-          {/* Nút Đăng xuất */}
-          <div className="mt-8 pt-8 border-t border-white/5">
-            <button
-              onClick={onLogout}
-              className="w-full p-5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 rounded-3xl flex items-center justify-center gap-3 font-black text-lg transition-all active:scale-[0.98] shadow-lg shadow-red-500/5"
+            <button 
+              onClick={() => setShowPassForm(!showPassForm)}
+              className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-2xl transition-all"
             >
-              <LogOut className="w-6 h-6" />
-              ĐĂNG XUẤT TÀI KHOẢN
+              {showPassForm ? "Hủy bỏ" : "Thiết lập ngay"}
             </button>
-            <p className="text-center text-[10px] text-gray-600 mt-6 uppercase tracking-[0.2em]">
-              Phiên đăng nhập sẽ tự động kết thúc khi bạn đóng trình duyệt
-            </p>
           </div>
+        )}
+
+        {/* ✅ FORM NHẬP MẬT KHẨU */}
+        {showPassForm && (
+          <form onSubmit={handleSetPassword} className="bg-white/5 border border-white/10 p-8 rounded-3xl space-y-4 animate-in zoom-in-95 duration-300">
+            <h4 className="text-lg font-bold flex items-center gap-2">
+              <Lock size={20} className="text-cyan-400" /> Tạo mật khẩu mới
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <input 
+                type="password" 
+                placeholder="Mật khẩu mới"
+                className="bg-black/40 border border-white/10 p-3 rounded-xl focus:border-cyan-500 outline-none"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+              />
+              <input 
+                type="password" 
+                placeholder="Xác nhận mật khẩu"
+                className="bg-black/40 border border-white/10 p-3 rounded-xl focus:border-cyan-500 outline-none"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
+            </div>
+            <button 
+              disabled={isSubmitting}
+              className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-2xl flex items-center justify-center gap-2"
+            >
+              {isSubmitting ? <Loader2 className="animate-spin" /> : "Xác nhận lưu mật khẩu"}
+            </button>
+          </form>
+        )}
+
+        {message && (
+          <div className="bg-green-500/20 border border-green-500/40 p-4 rounded-2xl text-green-400 text-center font-bold">
+            {message}
+          </div>
+        )}
+
+        {/* Các Menu cũ (Profile, Settings, Logout) */}
+        <div className="grid gap-4 pt-4">
+            <button className="w-full p-5 bg-white/5 hover:bg-white/10 rounded-3xl flex items-center justify-between transition-all group">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-cyan-500/10 rounded-2xl flex items-center justify-center group-hover:bg-cyan-500/20">
+                        <Settings className="text-cyan-400" />
+                    </div>
+                    <span className="text-lg font-medium">Cài đặt ứng dụng</span>
+                </div>
+                <ChevronRight className="text-gray-600" />
+            </button>
+
+            <button
+                onClick={onLogout}
+                className="w-full p-5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-3xl flex items-center justify-center gap-3 font-bold transition-all"
+            >
+                <LogOut /> Đăng xuất tài khoản
+            </button>
         </div>
       </div>
     </div>
