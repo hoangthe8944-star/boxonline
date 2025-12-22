@@ -1,137 +1,176 @@
-// src/components/ProfilePage.tsx
-
 import { useState } from 'react';
-import { User, Mail, Calendar, Shield, LogOut, Settings, Camera, ChevronRight, Lock, ShieldAlert, CheckCircle2, Loader2 } from 'lucide-react';
-import { getCurrentUser, setAccountPassword } from '../../api/authapi'; 
+import { User, Mail, Calendar, Shield, LogOut, Settings, Camera, ChevronRight, Lock, ShieldAlert, CheckCircle2, Loader2, ArrowLeft } from 'lucide-react';
+import { getCurrentUser, setAccountPassword, logout } from '../../api/authapi'; 
 
 export function ProfilePage({ onLogout }: { onLogout: () => void }) {
   const user = getCurrentUser();
   
-  // State cho form mật khẩu
-  const [showPassForm, setShowPassForm] = useState(false);
+  // ✅ 1. Quản lý các View (Chế độ hiển thị)
+  // 'main': Menu chính | 'password': Form đặt mật khẩu | 'edit': Form sửa profile
+  const [activeView, setActiveView] = useState<'main' | 'password' | 'edit'>('main');
+
+  // State cho Form mật khẩu
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [message, setMessage] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
-  // ✅ Kiểm tra xem đây có phải tài khoản Google chưa có mật khẩu không
-  // Lưu ý: Backend cần trả về field 'hasPassword: boolean' hoặc bạn check password null
-  const needsPassword = user && !user.roles.includes('ROLE_ADMIN') && (user as any).password === null;
+  // Kiểm tra nếu là user Google chưa có pass (logic đã bàn trước đó)
+  const needsPassword = user && (user as any).password === null;
 
   const handleSetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) return alert("Mật khẩu không khớp!");
-    if (newPassword.length < 6) return alert("Mật khẩu phải từ 6 ký tự!");
-
     setIsSubmitting(true);
     try {
       await setAccountPassword(newPassword);
-      setMessage("✅ Đã thiết lập mật khẩu thành công!");
-      // Cập nhật lại session giả để ẩn form (hoặc reload)
-      setTimeout(() => window.location.reload(), 2000);
+      setSuccessMsg("Thiết lập mật khẩu thành công!");
+      setTimeout(() => {
+        setActiveView('main');
+        window.location.reload(); // Reload để cập nhật lại dữ liệu user
+      }, 2000);
     } catch (err) {
-      alert("Lỗi khi thiết lập mật khẩu");
+      alert("Lỗi khi lưu mật khẩu. Vui lòng thử lại.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen pb-20 bg-slate-950">
-      {/* Hero Section (Giữ nguyên như cũ) */}
-      <div className="relative h-80 bg-gradient-to-br from-blue-900 to-slate-950 flex items-end p-10">
-          <div className="flex items-center gap-6 z-10">
-              <div className="w-32 h-32 rounded-full bg-cyan-500 flex items-center justify-center border-4 border-slate-950 shadow-2xl">
-                  <User size={64} className="text-white" />
-              </div>
-              <div>
-                  <h1 className="text-4xl font-bold text-white">{user?.username}</h1>
-                  <p className="text-cyan-400">{user?.email}</p>
-              </div>
+    <div className="min-h-screen bg-slate-950 text-white">
+      {/* Hero Header */}
+      <div className="relative h-64 sm:h-80 bg-gradient-to-br from-blue-600 to-cyan-900 flex items-end p-6 sm:p-10">
+        <div className="flex items-center gap-6 z-10">
+          <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-slate-900 flex items-center justify-center border-4 border-cyan-500 shadow-2xl">
+            <User size={48} className="text-cyan-400" />
           </div>
+          <div>
+            <h1 className="text-2xl sm:text-4xl font-bold">{user?.username}</h1>
+            <p className="text-cyan-200 opacity-80">{user?.email}</p>
+          </div>
+        </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-6 py-10 space-y-6">
+      <div className="max-w-3xl mx-auto px-6 py-10">
         
-        {/* ✅ PHẦN THÔNG BÁO THÊM MẬT KHẨU (Chỉ hiện cho User Google chưa có Pass) */}
-        {needsPassword && !message && (
-          <div className="bg-amber-500/10 border border-amber-500/20 p-6 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4">
-            <div className="flex items-center gap-4 text-center md:text-left">
-              <div className="w-12 h-12 bg-amber-500/20 rounded-2xl flex items-center justify-center shrink-0">
-                <ShieldAlert className="text-amber-500" />
-              </div>
-              <div>
-                <h3 className="font-bold text-amber-500">Tài khoản chưa có mật khẩu</h3>
-                <p className="text-sm text-gray-400">Thiết lập mật khẩu để có thể đăng nhập trực tiếp mà không cần Google.</p>
-              </div>
-            </div>
-            <button 
-              onClick={() => setShowPassForm(!showPassForm)}
-              className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-2xl transition-all"
-            >
-              {showPassForm ? "Hủy bỏ" : "Thiết lập ngay"}
-            </button>
-          </div>
-        )}
-
-        {/* ✅ FORM NHẬP MẬT KHẨU */}
-        {showPassForm && (
-          <form onSubmit={handleSetPassword} className="bg-white/5 border border-white/10 p-8 rounded-3xl space-y-4 animate-in zoom-in-95 duration-300">
-            <h4 className="text-lg font-bold flex items-center gap-2">
-              <Lock size={20} className="text-cyan-400" /> Tạo mật khẩu mới
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input 
-                type="password" 
-                placeholder="Mật khẩu mới"
-                className="bg-black/40 border border-white/10 p-3 rounded-xl focus:border-cyan-500 outline-none"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-              />
-              <input 
-                type="password" 
-                placeholder="Xác nhận mật khẩu"
-                className="bg-black/40 border border-white/10 p-3 rounded-xl focus:border-cyan-500 outline-none"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
-            </div>
-            <button 
-              disabled={isSubmitting}
-              className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-2xl flex items-center justify-center gap-2"
-            >
-              {isSubmitting ? <Loader2 className="animate-spin" /> : "Xác nhận lưu mật khẩu"}
-            </button>
-          </form>
-        )}
-
-        {message && (
-          <div className="bg-green-500/20 border border-green-500/40 p-4 rounded-2xl text-green-400 text-center font-bold">
-            {message}
-          </div>
-        )}
-
-        {/* Các Menu cũ (Profile, Settings, Logout) */}
-        <div className="grid gap-4 pt-4">
-            <button className="w-full p-5 bg-white/5 hover:bg-white/10 rounded-3xl flex items-center justify-between transition-all group">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-cyan-500/10 rounded-2xl flex items-center justify-center group-hover:bg-cyan-500/20">
-                        <Settings className="text-cyan-400" />
-                    </div>
-                    <span className="text-lg font-medium">Cài đặt ứng dụng</span>
+        {/* ================= VIEW 1: MENU CHÍNH ================= */}
+        {activeView === 'main' && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+            
+            {/* Cảnh báo nếu chưa có mật khẩu */}
+            {needsPassword && (
+              <div className="bg-amber-500/10 border border-amber-500/30 p-5 rounded-2xl flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <ShieldAlert className="text-amber-500" />
+                  <span className="text-sm text-amber-200">Tài khoản Google này chưa có mật khẩu thủ công.</span>
                 </div>
-                <ChevronRight className="text-gray-600" />
-            </button>
+                <button onClick={() => setActiveView('password')} className="text-sm font-bold text-amber-500 hover:underline">Thiết lập ngay</button>
+              </div>
+            )}
 
-            <button
-                onClick={onLogout}
-                className="w-full p-5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-3xl flex items-center justify-center gap-3 font-bold transition-all"
-            >
-                <LogOut /> Đăng xuất tài khoản
+            <div className="grid gap-4">
+              {/* Nút Chỉnh sửa hồ sơ */}
+              <button 
+                onClick={() => setActiveView('edit')}
+                className="w-full p-5 bg-white/5 hover:bg-white/10 rounded-2xl flex items-center justify-between transition-all group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-cyan-500/20 rounded-xl flex items-center justify-center"><User className="text-cyan-400" /></div>
+                  <div className="text-left">
+                    <p className="font-bold">Chỉnh sửa hồ sơ</p>
+                    <p className="text-xs text-gray-400">Thay đổi tên hiển thị và ảnh đại diện</p>
+                  </div>
+                </div>
+                <ChevronRight className="text-gray-600 group-hover:text-white" />
+              </button>
+
+              {/* Nút Cài đặt mật khẩu */}
+              <button 
+                onClick={() => setActiveView('password')}
+                className="w-full p-5 bg-white/5 hover:bg-white/10 rounded-2xl flex items-center justify-between transition-all group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center"><Lock className="text-purple-400" /></div>
+                  <div className="text-left">
+                    <p className="font-bold">Mật khẩu & Bảo mật</p>
+                    <p className="text-xs text-gray-400">{needsPassword ? "Chưa thiết lập mật khẩu" : "Thay đổi mật khẩu đăng nhập"}</p>
+                  </div>
+                </div>
+                <ChevronRight className="text-gray-600 group-hover:text-white" />
+              </button>
+
+              <button onClick={onLogout} className="w-full p-5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-2xl flex items-center justify-center gap-3 font-bold transition-all mt-4">
+                <LogOut size={20} /> Đăng xuất
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ================= VIEW 2: FORM MẬT KHẨU ================= */}
+        {activeView === 'password' && (
+          <div className="animate-in fade-in zoom-in-95 duration-300">
+            <button onClick={() => setActiveView('main')} className="flex items-center gap-2 text-gray-400 hover:text-white mb-6">
+              <ArrowLeft size={20} /> Quay lại
             </button>
-        </div>
+            
+            <form onSubmit={handleSetPassword} className="bg-white/5 border border-white/10 p-8 rounded-3xl space-y-6">
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <Shield className="text-cyan-400" /> {needsPassword ? "Thiết lập mật khẩu mới" : "Đổi mật khẩu"}
+              </h2>
+              
+              {successMsg ? (
+                 <div className="p-4 bg-green-500/20 border border-green-500/50 text-green-400 rounded-xl text-center font-bold">{successMsg}</div>
+              ) : (
+                <>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-xs text-gray-400 uppercase ml-2">Mật khẩu mới</label>
+                      <input 
+                        type="password" 
+                        className="w-full bg-black/40 border border-white/10 p-4 rounded-xl focus:border-cyan-500 outline-none mt-1"
+                        placeholder="Tối thiểu 6 ký tự"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 uppercase ml-2">Xác nhận mật khẩu</label>
+                      <input 
+                        type="password" 
+                        className="w-full bg-black/40 border border-white/10 p-4 rounded-xl focus:border-cyan-500 outline-none mt-1"
+                        placeholder="Nhập lại mật khẩu"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <button 
+                    disabled={isSubmitting}
+                    className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 text-black font-black rounded-2xl flex items-center justify-center gap-2 transition-transform active:scale-95"
+                  >
+                    {isSubmitting ? <Loader2 className="animate-spin" /> : "LƯU MẬT KHẨU"}
+                  </button>
+                </>
+              )}
+            </form>
+          </div>
+        )}
+
+        {/* ================= VIEW 3: CHỈNH SỬA HỒ SƠ ================= */}
+        {activeView === 'edit' && (
+          <div className="animate-in fade-in zoom-in-95 duration-300">
+             <button onClick={() => setActiveView('main')} className="flex items-center gap-2 text-gray-400 hover:text-white mb-6">
+              <ArrowLeft size={20} /> Quay lại
+            </button>
+            <div className="bg-white/5 border border-white/10 p-8 rounded-3xl text-center">
+                <User size={48} className="mx-auto text-cyan-500 mb-4" />
+                <p className="text-gray-300 italic">Tính năng cập nhật thông tin đang được phát triển...</p>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
