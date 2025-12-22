@@ -74,7 +74,7 @@ export const getAllPublicSongs = () => {
     });
 };
 export const getRecentlyPlayedSongs = () => {
-    const token = localStorage.getItem("accessToken");
+    const token = sessionStorage.getItem("accessToken");
     console.log("Token hiện tại:", token); // Dòng này để debug
 
     if (!token) {
@@ -90,7 +90,7 @@ export const getRecentlyPlayedSongs = () => {
     });
 };
 export const recordPlayback = (songId: string) => {
-    const token = localStorage.getItem("accessToken");
+    const token = sessionStorage.getItem("accessToken");
 
     // Endpoint này là POST và không có body, chỉ cần URL
     const fullUrl = `${History_URL}/${songId}/playback`;
