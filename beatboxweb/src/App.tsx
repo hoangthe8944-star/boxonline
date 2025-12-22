@@ -19,6 +19,7 @@ import { RegisterForm } from './components/RegisterForm';
 import { logout } from '../api/authapi';
 import type { Song } from '../api/apiclient';
 import './index.css';
+import { Menu } from 'lucide-react';
 
 export interface Playlist {
   id: string;
@@ -44,7 +45,7 @@ export default function App() {
   const [currentQueueIndex, setCurrentQueueIndex] = useState<number>(0);
 
 
-  
+
   // ✅ 1. THEO DÕI URL HASH (Xử lý mượt mà cho GitHub Pages)
   const [currentHash, setCurrentHash] = useState(window.location.hash);
   useEffect(() => {
@@ -57,7 +58,7 @@ export default function App() {
   const handleAuthSuccess = (newToken: string) => {
     setToken(newToken);
     // Reload để xóa sạch state cũ và nạp dữ liệu user mới từ session
-    window.location.href = "/boxonline/"; 
+    window.location.href = "/boxonline/";
   };
 
   const handleLogout = () => {
@@ -105,8 +106,23 @@ export default function App() {
 
   // TRƯỜNG HỢP C: Đã đăng nhập (Render Giao diện App chính)
   return (
-    <div className="flex h-screen bg-[#020617] text-white overflow-hidden relative">
-      
+    <div className="flex h-screen bg-gradient-to-br from-blue-700 via-cyan-600 to-cyan-400 text-white overflow-hidden">
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-blue-900/80 backdrop-blur-lg lg:hidden"
+      >
+        <Menu className="w-6 h-6" />
+      </button>
+
+      {/* Overlay for mobile */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <Sidebar
         currentPage={currentPage}
@@ -148,12 +164,12 @@ export default function App() {
           onTogglePlay={() => setIsPlaying(!isPlaying)}
           onClickPlayer={() => currentSong && setCurrentPage('nowplaying')}
           onNextSong={() => {
-             const next = (currentQueueIndex + 1) % playQueue.length;
-             handlePlaySong(playQueue[next], playQueue);
+            const next = (currentQueueIndex + 1) % playQueue.length;
+            handlePlaySong(playQueue[next], playQueue);
           }}
           onPrevSong={() => {
-             const prev = (currentQueueIndex - 1 + playQueue.length) % playQueue.length;
-             handlePlaySong(playQueue[prev], playQueue);
+            const prev = (currentQueueIndex - 1 + playQueue.length) % playQueue.length;
+            handlePlaySong(playQueue[prev], playQueue);
           }}
         />
       </div>
