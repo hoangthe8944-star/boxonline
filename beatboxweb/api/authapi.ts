@@ -150,7 +150,7 @@ export const logout = () => {
 
 export const setAccountPassword = (password: string) => {
   const token = getAccessToken();
-  return axios.post(`${BASE_URL}/auth/set-password`, 
+  return axios.post(`${BASE_URL}/set-password`, 
     { password }, 
     { headers: { "Authorization": `Bearer ${token}` } }
   );
