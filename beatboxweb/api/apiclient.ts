@@ -4,6 +4,8 @@ import axios from 'axios';
 // Sử dụng process.env để linh hoạt hơn giữa môi trường dev và production
 const PUBLIC_URL = 'https://backend-jfn4.onrender.com/api/public';
 const History_URL = 'https://backend-jfn4.onrender.com/api/songs';
+const LYRICS_URL = 'https://backend-jfn4.onrender.com/api/lyrics';
+
 
 
 // ====================================================
@@ -23,6 +25,11 @@ export interface Song {
     isExplicit: boolean;
     genre: string[];
 }
+
+export interface LyricsResponse {
+    lyrics: string;
+}
+
 
 // ====================================================
 // 2. API CALLS
@@ -103,6 +110,19 @@ export const recordPlayback = (songId: string) => {
         }
     });
 };
+
+/**
+ * Lấy lyrics theo spotifyId
+ * Lyrics được backend lấy từ Lyricstify (KHÔNG lưu DB)
+ */
+export const getLyricsBySpotifyId = (spotifyId: string) => {
+    return axios.get<LyricsResponse>(`${LYRICS_URL}/${spotifyId}`, {
+        headers: {
+            "ngrok-skip-browser-warning": "true"
+        }
+    });
+};
+
 /**
  * [ĐÃ XÓA] Hàm incrementViewCount không còn cần thiết.
  * Lý do: Trong PublicController, endpoint GET /songs/{songId}/info đã tự động gọi

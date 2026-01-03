@@ -2,8 +2,10 @@ import { Play, Heart, Shuffle, Repeat, ChevronDown, Equal, Pause, Music2 } from 
 import { useState, useEffect } from 'react';
 
 // ✅ BƯỚC 1: IMPORT CÁC THÀNH PHẦN CẦN THIẾT
-import type { Song } from '../../api/apiclient'; 
+import type { Song } from '../../api/apiclient';
 import { getTrendingSongs } from '../../api/apiclient';
+import { getLyricsBySpotifyId } from '../../api/apiclient';
+
 
 // ========================================================================
 // ✅ BƯỚC 2: TẠO MỘT COMPONENT IMAGEWITHFALLBACK ĐÁNG TIN CẬY
@@ -59,16 +61,24 @@ interface NowPlayingPageProps {
 export function NowPlayingPage({ currentSong, isPlaying, onPlaySong, onTogglePlay }: NowPlayingPageProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [isQueueOpen, setIsQueueOpen] = useState(false);
-  
+
   const [upNextSongs, setUpNextSongs] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
- const shuffleArray = (array: Song[]) => {
+  const [lyrics, setLyrics] = useState<string | null>(null);
+  const [lyricsLoading, setLyricsLoading] = useState(false);
+  const [lyricsError, setLyricsError] = useState<string | null>(null);
+
+
+  const shuffleArray = (array: Song[]) => {
     return [...array].sort(() => Math.random() - 0.5);
   };
-  
+
   // Logic gọi API đã đúng, không cần thay đổi
   useEffect(() => {
+    setLyrics(null);
+    setLyricsError(null);
+    setLyricsLoading(false);
     if (!currentSong) return;
 
     const fetchAndRefreshQueue = async () => {
@@ -96,16 +106,36 @@ export function NowPlayingPage({ currentSong, isPlaying, onPlaySong, onTogglePla
     setIsLiked(prev => !prev);
   };
 
+  const handleLoadLyrics = async () => {
+    if (!currentSong?.id) {
+      setLyricsError("Bài hát này không có lyrics");
+      return;
+    }
+
+    try {
+      setLyricsLoading(true);
+      setLyricsError(null);
+
+      const res = await getLyricsBySpotifyId(currentSong.id);
+      setLyrics(res.data.lyrics || "Không tìm thấy lời bài hát");
+    } catch (err) {
+      console.error(err);
+      setLyricsError("Không thể tải lời bài hát");
+    } finally {
+      setLyricsLoading(false);
+    }
+  };
+
   if (!currentSong) {
     return (
       <div className="flex items-center justify-center h-full">
-         <div className="text-center">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-600/20 flex items-center justify-center mx-auto mb-4">
-              <Music2 className="w-12 h-12 text-blue-300" />
-            </div>
-            <h3 className="mb-2 text-white">Chưa có bài hát nào đang phát</h3>
-            <p className="text-blue-300">Chọn một bài hát để bắt đầu nghe nhạc</p>
+        <div className="text-center">
+          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-600/20 flex items-center justify-center mx-auto mb-4">
+            <Music2 className="w-12 h-12 text-blue-300" />
           </div>
+          <h3 className="mb-2 text-white">Chưa có bài hát nào đang phát</h3>
+          <p className="text-blue-300">Chọn một bài hát để bắt đầu nghe nhạc</p>
+        </div>
       </div>
     );
   }
@@ -156,12 +186,52 @@ export function NowPlayingPage({ currentSong, isPlaying, onPlaySong, onTogglePla
           </div>
 
           {/* Lyrics Section */}
+          {/* Lyrics Section */}
           <div className="bg-gradient-to-br from-cyan-500/20 to-blue-600/20 rounded-xl p-4 sm:p-6 backdrop-blur-lg border border-cyan-400/20">
-            <h3 className="mb-4 text-cyan-200">Lời bài hát</h3>
-            <div className="space-y-4 text-sm leading-relaxed text-cyan-50"><p>There's a light in the darkness...</p></div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-cyan-200">Lời bài hát</h3>
+
+              {!lyrics && !lyricsLoading && (
+                <button
+                  onClick={handleLoadLyrics}
+                  className="text-xs px-3 py-1 rounded-full bg-cyan-400/20 hover:bg-cyan-400/30 text-cyan-200 transition"
+                >
+                  Xem lời
+                </button>
+              )}
+            </div>
+
+            {/* Loading */}
+            {lyricsLoading && (
+              <p className="text-sm text-cyan-200 animate-pulse">
+                Đang tải lời bài hát...
+              </p>
+            )}
+
+            {/* Error */}
+            {lyricsError && (
+              <p className="text-sm text-red-300">
+                {lyricsError}
+              </p>
+            )}
+
+            {/* Lyrics */}
+            {lyrics && (
+              <pre className="whitespace-pre-wrap text-sm leading-relaxed text-cyan-50 max-h-96 overflow-y-auto">
+                {lyrics}
+              </pre>
+            )}
+
+            {/* Chưa load */}
+            {!lyrics && !lyricsLoading && !lyricsError && (
+              <p className="text-sm text-cyan-300 italic">
+                Nhấn “Xem lời” để hiển thị lời bài hát
+              </p>
+            )}
           </div>
         </div>
       </div>
+
 
       {/* Queue Panel */}
       <div className={`fixed lg:static bottom-0 left-0 right-0 lg:w-96 bg-gradient-to-b from-blue-700/60 to-cyan-600/40 backdrop-blur-lg border-t lg:border-t-0 lg:border-l border-cyan-500/30 flex flex-col transition-transform duration-300 ease-in-out ${isQueueOpen ? 'translate-y-0' : 'translate-y-full lg:translate-y-0'} max-h-[70vh] lg:max-h-none z-30 lg:z-auto rounded-t-3xl lg:rounded-none`}>
