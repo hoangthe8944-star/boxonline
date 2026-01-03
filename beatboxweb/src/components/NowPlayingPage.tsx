@@ -72,22 +72,16 @@ export function NowPlayingPage({ currentSong, isPlaying, onPlaySong, onTogglePla
   const shuffleArray = (array: Song[]) => {
     return [...array].sort(() => Math.random() - 0.5);
   };
+
   useEffect(() => {
-    if (!currentSong?.id) return;
-
-    const fetchLyrics = async () => {
-      try {
-        const res = await getLyricsBySpotifyId(currentSong.id);
-        setLyrics(res.data.lyrics || "Chưa có lời bài hát");
-      } catch (err) {
-        console.error("Failed to load lyrics", err);
-        setLyrics("Không thể tải lyrics");
-      }
-    };
-
-    fetchLyrics();
-  }, [currentSong?.id]);
-  // Logic gọi API đã đúng, không cần thay đổi
+    if (!currentSong) return;
+    getLyricsBySpotifyId(currentSong.id)
+      .then(res => setLyrics(res.data.lyrics || "Chưa có lời bài hát"))
+      .catch(err => {
+        console.error("Error fetching lyrics:", err);
+        setLyrics("Chưa có lời bài hát");
+      });
+  }, [currentSong]);  // Logic gọi API đã đúng, không cần thay đổi
   useEffect(() => {
     setLyricsError(null);
     setLyricsLoading(false);
@@ -113,6 +107,10 @@ export function NowPlayingPage({ currentSong, isPlaying, onPlaySong, onTogglePla
     fetchAndRefreshQueue();
   }, [currentSong?.id]); // Chỉ chạy lại khi đổi sang bài hát KHÁC hoàn toàn
 
+  /**
+   * Toggle liked status of the current song.
+   * If the song is not defined, this function does nothing.
+   */
   const handleToggleLike = async () => {
     if (!currentSong) return;
     setIsLiked(prev => !prev);
