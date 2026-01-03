@@ -186,7 +186,6 @@ export function NowPlayingPage({ currentSong, isPlaying, onPlaySong, onTogglePla
           </div>
 
           {/* Lyrics Section */}
-          {/* Lyrics Section */}
           <div className="bg-gradient-to-br from-cyan-500/20 to-blue-600/20 rounded-xl p-4 sm:p-6 backdrop-blur-lg border border-cyan-400/20">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-cyan-200">Lời bài hát</h3>
