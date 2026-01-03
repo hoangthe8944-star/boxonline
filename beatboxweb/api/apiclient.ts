@@ -115,8 +115,8 @@ export const recordPlayback = (songId: string) => {
  * Lấy lyrics theo spotifyId
  * Lyrics được backend lấy từ Lyricstify (KHÔNG lưu DB)
  */
-export const getLyricsBySpotifyId = (songId: string) => {
-    return axios.get<LyricsResponse>(`${LYRICS_URL}/${songId}`, {
+export const getLyricsBySpotifyId = (spotifyId: string) => {
+    return axios.get<LyricsResponse>(`${LYRICS_URL}/${spotifyId}`, {
         headers: {
             "ngrok-skip-browser-warning": "true"
         }
