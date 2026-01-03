@@ -65,18 +65,30 @@ export function NowPlayingPage({ currentSong, isPlaying, onPlaySong, onTogglePla
   const [upNextSongs, setUpNextSongs] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [lyrics, setLyrics] = useState<string | null>(null);
   const [lyricsLoading, setLyricsLoading] = useState(false);
   const [lyricsError, setLyricsError] = useState<string | null>(null);
-
+  const [lyrics, setLyrics] = useState<string>("");
 
   const shuffleArray = (array: Song[]) => {
     return [...array].sort(() => Math.random() - 0.5);
   };
+  useEffect(() => {
+    if (!currentSong?.id) return;
 
+    const fetchLyrics = async () => {
+      try {
+        const res = await getLyricsBySpotifyId(currentSong.id);
+        setLyrics(res.data.lyrics || "Chưa có lời bài hát");
+      } catch (err) {
+        console.error("Failed to load lyrics", err);
+        setLyrics("Không thể tải lyrics");
+      }
+    };
+
+    fetchLyrics();
+  }, [currentSong?.id]);
   // Logic gọi API đã đúng, không cần thay đổi
   useEffect(() => {
-    setLyrics(null);
     setLyricsError(null);
     setLyricsLoading(false);
     if (!currentSong) return;
@@ -187,46 +199,12 @@ export function NowPlayingPage({ currentSong, isPlaying, onPlaySong, onTogglePla
 
           {/* Lyrics Section */}
           <div className="bg-gradient-to-br from-cyan-500/20 to-blue-600/20 rounded-xl p-4 sm:p-6 backdrop-blur-lg border border-cyan-400/20">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-cyan-200">Lời bài hát</h3>
-
-              {!lyrics && !lyricsLoading && (
-                <button
-                  onClick={handleLoadLyrics}
-                  className="text-xs px-3 py-1 rounded-full bg-cyan-400/20 hover:bg-cyan-400/30 text-cyan-200 transition"
-                >
-                  Xem lời
-                </button>
-              )}
+            <h3 className="mb-4 text-cyan-200">Lời bài hát</h3>
+            <div className="space-y-4 text-sm leading-relaxed text-cyan-50">
+              {lyrics.split("\n").map((line, idx) => (
+                <p key={idx}>{line}</p>
+              ))}
             </div>
-
-            {/* Loading */}
-            {lyricsLoading && (
-              <p className="text-sm text-cyan-200 animate-pulse">
-                Đang tải lời bài hát...
-              </p>
-            )}
-
-            {/* Error */}
-            {lyricsError && (
-              <p className="text-sm text-red-300">
-                {lyricsError}
-              </p>
-            )}
-
-            {/* Lyrics */}
-            {lyrics && (
-              <pre className="whitespace-pre-wrap text-sm leading-relaxed text-cyan-50 max-h-96 overflow-y-auto">
-                {lyrics}
-              </pre>
-            )}
-
-            {/* Chưa load */}
-            {!lyrics && !lyricsLoading && !lyricsError && (
-              <p className="text-sm text-cyan-300 italic">
-                Nhấn “Xem lời” để hiển thị lời bài hát
-              </p>
-            )}
           </div>
         </div>
       </div>

@@ -116,13 +116,10 @@ export const recordPlayback = (songId: string) => {
  * Lyrics được backend lấy từ Lyricstify (KHÔNG lưu DB)
  */
 export const getLyricsBySpotifyId = (spotifyId: string) => {
-    return axios.get<LyricsResponse>(`${LYRICS_URL}/${spotifyId}`, {
-        headers: {
-            "ngrok-skip-browser-warning": "true"
-        }
+    return axios.get<LyricsResponse>(`https://backend-jfn4.onrender.com/api/lyrics/${spotifyId}`, {
+        headers: { "ngrok-skip-browser-warning": "true" }
     });
 };
-
 /**
  * [ĐÃ XÓA] Hàm incrementViewCount không còn cần thiết.
  * Lý do: Trong PublicController, endpoint GET /songs/{songId}/info đã tự động gọi
