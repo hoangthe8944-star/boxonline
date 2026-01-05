@@ -26,10 +26,16 @@ export interface Song {
     genre: string[];
 }
 
+// Cấu trúc trả về từ Backend (sau khi gọi LRCLIB)
 export interface LyricsResponse {
-    lyrics: string;
+    id: number;
+    trackName: string;
+    artistName: string;
+    albumName: string;
+    duration: number;
+    plainLyrics: string;  // Lời bài hát dạng văn bản thuần
+    syncedLyrics: string; // Lời bài hát dạng [00:12.34] để chạy chữ
 }
-
 
 // ====================================================
 // 2. API CALLS
@@ -110,14 +116,24 @@ export const recordPlayback = (songId: string) => {
         }
     });
 };
-
 /**
- * Lấy lyrics theo spotifyId
- * Lyrics được backend lấy từ Lyricstify (KHÔNG lưu DB)
+ * Lấy lời bài hát từ Backend (Backend sẽ gọi LRCLIB)
+ * @param track Tên bài hát
+ * @param artist Tên nghệ sĩ
+ * @param album Tên album (không bắt buộc)
+ * @param duration Thời lượng bài hát tính bằng GIÂY (nên truyền để khớp 100%)
  */
-export const getLyricsBySpotifyId = (spotifyId: string) => {
-    return axios.get<LyricsResponse>(`https://backend-jfn4.onrender.com/api/lyrics/${spotifyId}`, {
-        headers: { "ngrok-skip-browser-warning": "true" }
+export const getLyrics = (track: string, artist: string, album?: string, duration?: number) => {
+    return axios.get<LyricsResponse>(LYRICS_URL, {
+        params: {
+            track: track,
+            artist: artist,
+            album: album,
+            duration: duration ? Math.floor(duration) : undefined // Chuyển về số nguyên nếu là số thực
+        },
+        headers: {
+            "ngrok-skip-browser-warning": "true"
+        }
     });
 };
 /**
