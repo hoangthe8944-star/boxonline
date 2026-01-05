@@ -136,7 +136,7 @@ export function NowPlayingPage({
 
       {/* BACKGROUND */}
       <div
-        className="absolute inset-0 bg-cover bg-center blur-3xl opacity-30"
+        className="bg-blur-cover"
         style={{ backgroundImage: `url(${currentSong.coverUrl})` }}
       />
       <div className="absolute inset-0 bg-black/60" />
