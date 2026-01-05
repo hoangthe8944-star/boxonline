@@ -142,15 +142,10 @@ export function NowPlayingPage({ currentSong, isPlaying, currentTime, onPlaySong
 
       {/* ✅ BACKGROUND IMAGE */}
       <div
-        className="absolute inset-0 z-0 bg-cover bg-center scale-105"
+        className="bg-blur-cover"
         style={{ backgroundImage: `url(${currentSong.coverUrl})` }}
       />
-
-      {/* ✅ BLUR LAYER */}
-      <div className="absolute inset-0 z-0 backdrop-blur-3xl bg-black/40" />
-
-      {/* ✅ DARK OVERLAY */}
-      <div className="absolute inset-0 z-0 bg-black/30" />
+      <div className="absolute inset-0 bg-black/50 z-0" />
 
       {/* Phần bên trái - Music Info & Karaoke */}
       <div className="flex-1 flex flex-col px-6 py-8 z-10 overflow-y-auto custom-scrollbar">
@@ -196,8 +191,8 @@ export function NowPlayingPage({ currentSong, isPlaying, currentTime, onPlaySong
                     key={idx}
                     ref={idx === activeIndex ? activeLineRef : null}
                     className={`text-2xl sm:text-3xl font-black transition-all duration-500 leading-tight tracking-tight ${idx === activeIndex
-                        ? 'text-white opacity-100 scale-110 translate-x-2 drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]'
-                        : 'text-white/10 opacity-30 blur-[0.5px]'
+                      ? 'text-white opacity-100 scale-110 translate-x-2 drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]'
+                      : 'text-white/10 opacity-30 blur-[0.5px]'
                       }`}
                   >
                     {line.text}

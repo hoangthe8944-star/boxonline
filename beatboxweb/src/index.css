@@ -181,6 +181,22 @@
     backdrop-filter: var(--tw-backdrop-blur);
   }
 }
+.bg-blur-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.bg-blur-cover::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(80px);
+  transform: scale(1.2);
+}
 
 
 @layer base {
