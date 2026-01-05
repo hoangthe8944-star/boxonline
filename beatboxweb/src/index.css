@@ -503,6 +503,22 @@
   .pointer-events-none {
     pointer-events: none;
   }
+.bg-blur-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.bg-blur-cover::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(80px);
+  transform: scale(1.2);
+}
 
   .sr-only {
     clip: rect(0, 0, 0, 0);
@@ -4859,20 +4875,4 @@ html {
     opacity: var(--tw-exit-opacity, 1);
     transform: translate3d(var(--tw-exit-translate-x, 0), var(--tw-exit-translate-y, 0), 0) scale3d(var(--tw-exit-scale, 1), var(--tw-exit-scale, 1), var(--tw-exit-scale, 1)) rotate(var(--tw-exit-rotate, 0));
   }
-}
-.bg-blur-cover {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-}
-
-.bg-blur-cover::before {
-  content: "";
-  position: absolute;
-  inset: -20%;
-  background-size: cover;
-  background-position: center;
-  filter: blur(80px);
-  transform: scale(1.2);
 }
