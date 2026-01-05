@@ -132,7 +132,7 @@ export function NowPlayingPage({
 
   /* ================= UI ================= */
   return (
-    <div className="h-full flex flex-col lg:flex-row bg-black text-white overflow-hidden">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-black text-white overflow-hidden">
 
       {/* BACKGROUND */}
       <div
