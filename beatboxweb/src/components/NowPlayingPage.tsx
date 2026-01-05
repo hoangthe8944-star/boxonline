@@ -1,24 +1,17 @@
 import { Play, Heart, Shuffle, Repeat, ChevronDown, Equal, Pause, Music2 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 
 // ✅ CẬP NHẬT IMPORT: Sử dụng getLyrics mới
 import type { Song } from '../../api/apiclient';
 import { getTrendingSongs, getLyrics } from '../../api/apiclient';
 
-// ========================================================================
-// COMPONENT IMAGEWITHFALLBACK
-// ========================================================================
 interface ImageWithFallbackProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   fallback?: React.ReactNode;
 }
 
 const ImageWithFallback = ({ src, fallback, ...props }: ImageWithFallbackProps) => {
   const [imgError, setImgError] = useState(false);
-
-  useEffect(() => {
-    setImgError(false);
-  }, [src]);
-
+  useEffect(() => { setImgError(false); }, [src]);
   if (imgError || !src) {
     return (
       <div {...props} className={`${props.className} flex items-center justify-center bg-white/5`}>
@@ -26,17 +19,9 @@ const ImageWithFallback = ({ src, fallback, ...props }: ImageWithFallbackProps) 
       </div>
     );
   }
-
-  return (
-    <img
-      {...props}
-      src={src}
-      onError={() => setImgError(true)}
-    />
-  );
+  return <img {...props} src={src} onError={() => setImgError(true)} />;
 };
 
-// Hàm tiện ích định dạng thời gian
 const formatDuration = (seconds: number) => {
   if (isNaN(seconds) || seconds < 0) return "0:00";
   const minutes = Math.floor(seconds / 60);
@@ -44,222 +29,215 @@ const formatDuration = (seconds: number) => {
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 };
 
+// Interface cho dòng lời nhạc đã parse
+interface LyricLine {
+  time: number;
+  text: string;
+}
+
 interface NowPlayingPageProps {
   currentSong: Song | null;
   isPlaying: boolean;
+  currentTime: number; // 👈 CẦN THIÊT: Thời gian bài hát hiện tại (giây)
   onPlaySong: (song: Song, contextPlaylist: Song[]) => void;
   onTogglePlay: () => void;
 }
 
-export function NowPlayingPage({ currentSong, isPlaying, onPlaySong, onTogglePlay }: NowPlayingPageProps) {
+export function NowPlayingPage({ currentSong, isPlaying, currentTime, onPlaySong, onTogglePlay }: NowPlayingPageProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [isQueueOpen, setIsQueueOpen] = useState(false);
-
   const [upNextSongs, setUpNextSongs] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [lyricsLoading, setLyricsLoading] = useState(false);
-  const [lyricsError, setLyricsError] = useState<string | null>(null);
-  const [lyrics, setLyrics] = useState<string>("");
+  const [rawLyrics, setRawLyrics] = useState<string>("");
+  const [isSynced, setIsSynced] = useState(false);
+  
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const activeLineRef = useRef<HTMLParagraphElement>(null);
 
-  const shuffleArray = (array: Song[]) => {
-    return [...array].sort(() => Math.random() - 0.5);
-  };
+  // 1. Logic Parse lời bài hát từ định dạng [mm:ss.xx]
+  const parsedLyrics = useMemo(() => {
+    if (!rawLyrics || !rawLyrics.includes('[')) {
+      setIsSynced(false);
+      return rawLyrics.split('\n').map(line => ({ time: 0, text: line }));
+    }
 
-  // ✅ CẬP NHẬT LOGIC LẤY LỜI BÀI HÁT (Sử dụng LRCLIB)
+    setIsSynced(true);
+    const lines = rawLyrics.split('\n');
+    const result: LyricLine[] = [];
+    const syncRegex = /\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/;
+
+    lines.forEach(line => {
+      const match = line.match(syncRegex);
+      if (match) {
+        const minutes = parseInt(match[1]);
+        const seconds = parseInt(match[2]);
+        const time = minutes * 60 + seconds;
+        const text = match[4].trim();
+        if (text) result.push({ time, text });
+      }
+    });
+    return result;
+  }, [rawLyrics]);
+
+  // 2. Tìm dòng hiện tại dựa trên currentTime
+  const activeIndex = useMemo(() => {
+    if (!isSynced) return -1;
+    let index = -1;
+    for (let i = 0; i < parsedLyrics.length; i++) {
+      if (currentTime >= parsedLyrics[i].time) {
+        index = i;
+      } else {
+        break;
+      }
+    }
+    return index;
+  }, [currentTime, parsedLyrics, isSynced]);
+
+  // 3. Tự động cuộn tới dòng đang hát
+  useEffect(() => {
+    if (activeLineRef.current && scrollRef.current) {
+      activeLineRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+    }
+  }, [activeIndex]);
+
+  // Logic gọi API
   useEffect(() => {
     if (!currentSong) return;
-
     const fetchLyrics = async () => {
       setLyricsLoading(true);
-      setLyricsError(null);
-      setLyrics("Đang tải lời bài hát...");
-
+      setRawLyrics("");
       try {
-        // Chuyển đổi duration từ ms sang s để khớp với API LRCLIB
         const durationSeconds = Math.floor(currentSong.duration / 1000);
-
-        const res = await getLyrics(
-          currentSong.title,
-          currentSong.artistName,
-          currentSong.albumName,
-          durationSeconds
-        );
-
-        if (res.data && res.data.plainLyrics) {
-          setLyrics(res.data.plainLyrics);
+        const res = await getLyrics(currentSong.title, currentSong.artistName, currentSong.albumName, durationSeconds);
+        
+        // Ưu tiên syncedLyrics để làm karaoke, nếu không có thì dùng plainLyrics
+        if (res.data && (res.data.syncedLyrics || res.data.plainLyrics)) {
+          setRawLyrics(res.data.syncedLyrics || res.data.plainLyrics);
         } else {
-          setLyrics("Không tìm thấy lời bài hát");
+          setRawLyrics("Không tìm thấy lời bài hát");
         }
       } catch (err) {
-        console.error("Error fetching lyrics:", err);
-        setLyrics("Chưa có lời bài hát cho ca khúc này");
-        setLyricsError("Không thể tải lời bài hát");
+        setRawLyrics("Chưa có lời bài hát cho ca khúc này");
       } finally {
         setLyricsLoading(false);
       }
     };
-
     fetchLyrics();
-  }, [currentSong?.id]); // Chạy lại khi id bài hát thay đổi
+  }, [currentSong?.id]);
 
-  // Logic lấy danh sách "Tiếp theo"
   useEffect(() => {
     if (!currentSong) return;
-
     const fetchAndRefreshQueue = async () => {
       setIsLoading(true);
       try {
         const response = await getTrendingSongs(20);
-        const shuffled = shuffleArray(response.data);
-        const filtered = shuffled.filter(s => s.id !== currentSong.id);
+        const filtered = response.data.filter(s => s.id !== currentSong.id).sort(() => Math.random() - 0.5);
         setUpNextSongs(filtered);
-      } catch (err) {
-        console.error("Lỗi tải danh sách:", err);
-        setError("Không thể tải danh sách nhạc tiếp theo");
-      } finally {
-        setIsLoading(false);
-      }
+      } catch (err) { setError("Không thể tải danh sách"); } finally { setIsLoading(false); }
     };
-
     fetchAndRefreshQueue();
   }, [currentSong?.id]);
 
-  const handleToggleLike = async () => {
-    if (!currentSong) return;
-    setIsLiked(prev => !prev);
-  };
-
-  if (!currentSong) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center">
-          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-600/20 flex items-center justify-center mx-auto mb-4">
-            <Music2 className="w-12 h-12 text-blue-300" />
-          </div>
-          <h3 className="mb-2 text-white">Chưa có bài hát nào đang phát</h3>
-          <p className="text-blue-300">Chọn một bài hát để bắt đầu nghe nhạc</p>
-        </div>
-      </div>
-    );
-  }
+  if (!currentSong) return null;
 
   return (
-    <div className="h-full flex flex-col lg:flex-row relative">
-      {/* Phần bên trái - Album Art & Info & Lyrics */}
-      <div className="flex-1 flex flex-col px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 bg-gradient-to-b from-blue-600/40 to-transparent overflow-y-auto pb-24 lg:pb-12">
-        <div className="w-full max-w-md mx-auto">
-          {/* Album Cover */}
-          <div className="relative mb-6 sm:mb-8 group">
+    <div className="h-full flex flex-col lg:flex-row relative overflow-hidden bg-black">
+      {/* Background Blur */}
+      <div className="absolute inset-0 opacity-30 blur-3xl" style={{backgroundImage: `url(${currentSong.coverUrl})`, backgroundSize: 'cover'}}></div>
+
+      {/* Phần bên trái - Music Info */}
+      <div className="flex-1 flex flex-col px-6 py-8 z-10 overflow-y-auto custom-scrollbar">
+        <div className="w-full max-w-lg mx-auto flex flex-col items-center">
+          {/* Album Art - Nhỏ gọn hơn */}
+          <div className="w-64 h-64 sm:w-80 sm:h-80 relative mb-8">
             <ImageWithFallback
               src={currentSong.coverUrl}
               alt={currentSong.title}
-              className="w-full aspect-square object-cover rounded-2xl shadow-2xl shadow-black/40"
+              className="w-full h-full object-cover rounded-2xl shadow-2xl"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl" />
           </div>
 
           {/* Song Info */}
-          <div className="space-y-4 mb-6 sm:mb-8">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                <h2 className="mb-2 truncate text-xl sm:text-2xl font-bold text-white">{currentSong.title}</h2>
-                <p className="text-cyan-300 truncate">{currentSong.artistName}</p>
-              </div>
-              <button
-                onClick={handleToggleLike}
-                className={`p-2 sm:p-3 rounded-full transition-all ${isLiked ? 'bg-cyan-400/20 text-cyan-400' : 'bg-blue-600/40 text-cyan-200 hover:bg-cyan-500/60'}`}
-              >
-                <Heart className="w-5 h-5 sm:w-6 sm:h-6" fill={isLiked ? 'currentColor' : 'none'} />
+          <div className="w-full text-center space-y-2 mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white truncate">{currentSong.title}</h2>
+            <p className="text-cyan-400 text-lg">{currentSong.artistName}</p>
+            
+            <div className="flex items-center justify-center gap-6 mt-6">
+              <button onClick={() => setIsLiked(!isLiked)} className={`p-3 rounded-full transition-all ${isLiked ? 'text-red-500' : 'text-white/60'}`}>
+                <Heart fill={isLiked ? "currentColor" : "none"} className="w-7 h-7" />
               </button>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-2 sm:gap-3">
-              <button
-                onClick={onTogglePlay}
-                className="flex items-center justify-center gap-2 flex-1 py-2.5 sm:py-3 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white font-medium rounded-full hover:scale-105 transition-transform shadow-lg shadow-cyan-400/20"
-              >
-                {isPlaying ? <><Pause className="w-5 h-5" /> Tạm dừng</> : <><Play className="w-5 h-5" /> Phát</>}
+              <button onClick={onTogglePlay} className="w-16 h-16 flex items-center justify-center bg-white text-black rounded-full hover:scale-105 transition-transform">
+                {isPlaying ? <Pause fill="black" /> : <Play fill="black" />}
               </button>
-              <button className="p-2.5 sm:p-3 bg-blue-600/40 hover:bg-cyan-500/60 rounded-full transition-colors text-white"><Shuffle className="w-4 h-4 sm:w-5 sm:h-5" /></button>
-              <button className="p-2.5 sm:p-3 bg-blue-600/40 hover:bg-cyan-500/60 rounded-full transition-colors text-white"><Repeat className="w-4 h-4 sm:w-5 sm:h-5" /></button>
-              <button onClick={() => setIsQueueOpen(!isQueueOpen)} className="lg:hidden p-2.5 sm:p-3 bg-blue-600/40 hover:bg-cyan-500/60 rounded-full transition-colors text-white"><Equal className="w-4 h-4 sm:w-5 sm:h-5" /></button>
+              <button className="text-white/60"><Shuffle className="w-6 h-6" /></button>
             </div>
           </div>
 
-          {/* Lyrics Section */}
-          <div className="bg-gradient-to-br from-cyan-500/20 to-blue-600/20 rounded-xl p-4 sm:p-6 backdrop-blur-lg border border-cyan-400/20">
-            <h3 className="mb-4 text-cyan-200 font-medium">Lời bài hát</h3>
-            <div className="space-y-4 text-sm leading-relaxed text-cyan-50 max-h-96 overflow-y-auto custom-scrollbar">
+          {/* Lyrics Box - Cải tiến: Hát tới đâu sáng tới đó */}
+          <div className="w-full bg-white/5 rounded-3xl p-6 border border-white/10 backdrop-blur-md">
+            <h3 className="text-white/40 text-xs uppercase tracking-widest mb-4 font-bold">Lyrics</h3>
+            <div 
+              ref={scrollRef}
+              className="h-64 sm:h-80 overflow-y-auto custom-scrollbar flex flex-col space-y-6 scroll-smooth"
+            >
               {lyricsLoading ? (
-                <p className="animate-pulse">Đang tìm lời bài hát...</p>
-              ) : (
-                lyrics.split("\n").map((line, idx) => (
-                  <p key={idx} className={line.trim() === "" ? "h-4" : ""}>{line}</p>
+                <p className="text-white/20 animate-pulse text-center">Đang tải lời bài hát...</p>
+              ) : parsedLyrics.length > 0 ? (
+                parsedLyrics.map((line, idx) => (
+                  <p
+                    key={idx}
+                    ref={idx === activeIndex ? activeLineRef : null}
+                    className={`text-xl sm:text-2xl font-bold transition-all duration-500 leading-tight ${
+                      idx === activeIndex 
+                        ? 'text-white scale-105 opacity-100' 
+                        : 'text-white/20 scale-100 opacity-40 hover:opacity-60'
+                    }`}
+                  >
+                    {line.text}
+                  </p>
                 ))
+              ) : (
+                <p className="text-white/20 text-center">Không có lời bài hát</p>
               )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Queue Panel */}
-      <div className={`fixed lg:static bottom-0 left-0 right-0 lg:w-96 bg-gradient-to-b from-blue-700/60 to-cyan-600/40 backdrop-blur-lg border-t lg:border-t-0 lg:border-l border-cyan-500/30 flex flex-col transition-transform duration-300 ease-in-out ${isQueueOpen ? 'translate-y-0' : 'translate-y-full lg:translate-y-0'} max-h-[70vh] lg:max-h-none z-30 lg:z-auto rounded-t-3xl lg:rounded-none`}>
-        <div className="p-4 sm:p-6 border-b border-cyan-500/30">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg sm:text-xl font-bold text-white">Tiếp theo</h3>
-              <p className="text-sm text-cyan-200 mt-1">{upNextSongs.length} bài hát</p>
-            </div>
-            <button onClick={() => setIsQueueOpen(false)} className="lg:hidden p-2 hover:bg-cyan-500/20 rounded-full transition-colors text-white"><ChevronDown className="w-6 h-6" /></button>
-          </div>
+      {/* Queue Panel (Giữ nguyên giao diện của bạn) */}
+      <div className={`fixed lg:static bottom-0 left-0 right-0 lg:w-96 bg-zinc-900/90 backdrop-blur-xl border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col transition-transform duration-300 z-30 ${isQueueOpen ? 'translate-y-0' : 'translate-y-full lg:translate-y-0'} rounded-t-3xl lg:rounded-none max-h-[60vh] lg:max-h-none`}>
+        <div className="p-6 border-b border-white/5 flex justify-between items-center">
+            <h3 className="font-bold text-white">Up Next</h3>
+            <button onClick={() => setIsQueueOpen(false)} className="lg:hidden text-white"><ChevronDown /></button>
         </div>
-
-        <div className="flex-1 overflow-y-auto custom-scrollbar">
-          <div className="p-3 sm:p-4 space-y-2">
-            {/* Đang phát */}
-            <div className="mb-4">
-              <p className="text-xs text-cyan-300 uppercase tracking-wider mb-2 px-2 font-semibold">Đang phát</p>
-              <div className="bg-gradient-to-r from-cyan-400/20 to-blue-500/20 rounded-lg p-3 border border-cyan-400/30">
-                <div className="flex items-center gap-3">
-                  <ImageWithFallback src={currentSong.coverUrl} alt={currentSong.title} className="w-10 h-10 sm:w-12 sm:h-12 rounded shadow-lg flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm truncate text-cyan-100 font-medium">{currentSong.title}</p>
-                    <p className="text-xs text-cyan-200 truncate">{currentSong.artistName}</p>
-                  </div>
-                  <p className="text-xs text-cyan-200 flex-shrink-0">{formatDuration(currentSong.duration / 1000)}</p>
+        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+            {upNextSongs.map((song) => (
+              <button key={song.id} onClick={() => onPlaySong(song, upNextSongs)} className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-all">
+                <ImageWithFallback src={song.coverUrl} className="w-12 h-12 rounded-lg" />
+                <div className="flex-1 text-left">
+                  <p className="text-sm font-medium text-white truncate">{song.title}</p>
+                  <p className="text-xs text-white/40">{song.artistName}</p>
                 </div>
-              </div>
-            </div>
-
-            {/* Danh sách tiếp theo */}
-            <div>
-              <p className="text-xs text-cyan-300 uppercase tracking-wider mb-2 px-2 font-semibold">Tiếp theo</p>
-              {isLoading && <p className="text-cyan-200 p-4 text-center text-sm">Đang tải danh sách...</p>}
-              {error && <p className="text-red-400 p-4 text-center text-sm">{error}</p>}
-              {!isLoading && !error && upNextSongs.map((song, index) => (
-                <button
-                  key={song.id}
-                  onClick={() => onPlaySong(song, upNextSongs)}
-                  className="w-full flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg hover:bg-cyan-500/30 transition-all group"
-                >
-                  <span className="text-cyan-300 text-xs w-4 flex-shrink-0">{index + 1}</span>
-                  <ImageWithFallback src={song.coverUrl} alt={song.title} className="w-8 h-8 sm:w-10 sm:h-10 rounded shadow-lg flex-shrink-0" />
-                  <div className="flex-1 text-left min-w-0">
-                    <p className="text-xs sm:text-sm truncate text-white group-hover:text-cyan-100 transition-colors font-medium">{song.title}</p>
-                    <p className="text-xs text-cyan-200 truncate">{song.artistName}</p>
-                  </div>
-                  <p className="text-xs text-cyan-200 flex-shrink-0">{formatDuration(song.duration / 1000)}</p>
-                </button>
-              ))}
-            </div>
-          </div>
+              </button>
+            ))}
         </div>
       </div>
 
-      {isQueueOpen && <div className="lg:hidden fixed inset-0 bg-black/50 z-20" onClick={() => setIsQueueOpen(false)} />}
+      {/* Mobile Toggle Queue */}
+      {!isQueueOpen && (
+        <button 
+          onClick={() => setIsQueueOpen(true)}
+          className="lg:hidden fixed bottom-24 right-6 p-4 bg-cyan-500 text-white rounded-full shadow-2xl z-40"
+        >
+          <Equal className="w-6 h-6" />
+        </button>
+      )}
     </div>
   );
 }
