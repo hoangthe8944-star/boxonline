@@ -132,7 +132,7 @@ export function NowPlayingPage({
 
   /* ================= UI ================= */
   return (
-    <div className="h-full w-full overflow-hidden text-white">
+    <div className="absolute h-full w-full overflow-hidden text-white">
 
       {/* ===== BACKGROUND LAYER (KHÔNG relative) ===== */}
       <div
