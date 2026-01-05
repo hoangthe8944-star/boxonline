@@ -12,6 +12,7 @@ interface MusicPlayerProps {
   onNextSong: () => void;
   onPrevSong: () => void;
   onClickPlayer: () => void;
+  onTimeUpdate: (time: number) => void;
 }
 
 // Hàm tiện ích để định dạng thời gian từ giây sang "phút:giây"
@@ -30,6 +31,7 @@ export function MusicPlayer({
   onNextSong,
   onPrevSong,
   onClickPlayer,
+  onTimeUpdate,
 }: MusicPlayerProps) {
 
   // ✅ PHẦN 1: REFS VÀ STATE NỘI BỘ
@@ -71,9 +73,12 @@ export function MusicPlayer({
 
     // 2. Khi thời gian phát thay đổi -> Cập nhật UI
     const handleTimeUpdate = () => {
-      setCurrentTime(audio.currentTime);
-      setProgress((audio.currentTime / audio.duration) * 100);
+      const time = audio.currentTime;
+      setCurrentTime(time);
+      setProgress((time / audio.duration) * 100);
+      onTimeUpdate(time); // 🔥 BẮT BUỘC – GỬI LÊN APP
     };
+
 
     // 3. Khi bài hát kết thúc -> Gọi callback để tự động chuyển bài
     const handleSongEnd = () => {

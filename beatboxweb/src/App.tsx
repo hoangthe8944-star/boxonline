@@ -41,6 +41,7 @@ export default function App() {
   // --- STATE NHẠC ---
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
   const [playQueue, setPlayQueue] = useState<Song[]>([]);
   const [currentQueueIndex, setCurrentQueueIndex] = useState<number>(0);
 
@@ -154,7 +155,7 @@ export default function App() {
           {currentPage === 'profile' && <ProfilePage onLogout={handleLogout} />}
           {currentPage === 'liked-songs' && <LikedSongsPage onPlaySong={handlePlaySong} />}
           {currentPage === 'recently-played' && <RecentlyPlayedPage onPlaySong={handlePlaySong} />}
-          {currentPage === 'nowplaying' && <NowPlayingPage currentSong={currentSong} isPlaying={isPlaying} onTogglePlay={() => setIsPlaying(!isPlaying)} onPlaySong={handlePlaySong} />}
+          {currentPage === 'nowplaying' && <NowPlayingPage currentSong={currentSong} isPlaying={isPlaying} onTogglePlay={() => setIsPlaying(!isPlaying)} onPlaySong={handlePlaySong} currentTime={currentTime}/>}
           {currentPage === 'create-playlist' && <CreatePlaylistPage onBack={() => setCurrentPage('playlists')} onSubmit={() => setCurrentPage('playlists')} />}
         </main>
 
@@ -171,6 +172,7 @@ export default function App() {
             const prev = (currentQueueIndex - 1 + playQueue.length) % playQueue.length;
             handlePlaySong(playQueue[prev], playQueue);
           }}
+          onTimeUpdate={setCurrentTime}
         />
       </div>
     </div>
