@@ -165,7 +165,7 @@
     --default-mono-font-variation-settings: var(--font-mono--font-variation-settings);
   }
 }
-@layer utilities {
+/* @layer utilities {
   .backdrop-blur-2xl {
     --tw-backdrop-blur: blur(40px);
     backdrop-filter: var(--tw-backdrop-blur);
@@ -180,7 +180,7 @@
     --tw-backdrop-blur: blur(80px);
     backdrop-filter: var(--tw-backdrop-blur);
   }
-}
+} */
 .bg-blur-cover {
   position: absolute;
   inset: 0;
