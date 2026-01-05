@@ -132,7 +132,7 @@ export function NowPlayingPage({
 
   /* ================= UI ================= */
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-black text-white overflow-hidden">
+    <div className="group relative flex flex-col lg:flex-row bg-black text-white overflow-hidden">
 
       {/* BACKGROUND */}
       <div
@@ -165,9 +165,8 @@ export function NowPlayingPage({
           <div className="flex gap-6 mb-10">
             <button onClick={() => setLiked(!liked)}>
               <Heart
-                className={`w-8 h-8 ${
-                  liked ? 'text-red-500' : 'text-white/40'
-                }`}
+                className={`w-8 h-8 ${liked ? 'text-red-500' : 'text-white/40'
+                  }`}
                 fill={liked ? 'currentColor' : 'none'}
               />
             </button>
@@ -178,8 +177,9 @@ export function NowPlayingPage({
             >
               {isPlaying ? <Pause size={32} /> : <Play size={32} />}
             </button>
-
-            <Shuffle className="w-6 h-6 text-white/40" />
+            <button>
+              <Shuffle className="w-6 h-6 text-white/40" />
+            </button>
           </div>
 
           {/* LYRICS */}
@@ -201,11 +201,10 @@ export function NowPlayingPage({
                   <p
                     key={i}
                     ref={i === activeIndex ? activeRef : null}
-                    className={`text-2xl sm:text-3xl font-black transition-all duration-500 ${
-                      i === activeIndex
+                    className={`text-2xl sm:text-3xl font-black transition-all duration-500 ${i === activeIndex
                         ? 'text-white scale-110 drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]'
                         : 'text-white/20'
-                    }`}
+                      }`}
                   >
                     {line}
                   </p>
@@ -218,9 +217,8 @@ export function NowPlayingPage({
 
       {/* QUEUE */}
       <div
-        className={`fixed lg:static bottom-0 left-0 right-0 lg:w-96 bg-black/40 backdrop-blur-2xl transition-transform duration-500 z-20 ${
-          queueOpen ? 'translate-y-0' : 'translate-y-full lg:translate-y-0'
-        }`}
+        className={`fixed lg:static bottom-0 left-0 right-0 lg:w-96 bg-black/40 backdrop-blur-2xl transition-transform duration-500 z-20 ${queueOpen ? 'translate-y-0' : 'translate-y-full lg:translate-y-0'
+          }`}
       >
         <div className="p-6 border-b border-white/10 flex justify-between">
           <h3 className="font-bold">Tiếp theo</h3>
