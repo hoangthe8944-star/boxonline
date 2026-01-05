@@ -374,7 +374,7 @@
 
   /* ===== BLURRED BACKGROUND COVER (CHẮC CHẮN MỜ) ===== */
   .bg-blur-cover {
-    position: relative;
+    position: absolute;
     inset: 0;
     z-index: 0;
 
