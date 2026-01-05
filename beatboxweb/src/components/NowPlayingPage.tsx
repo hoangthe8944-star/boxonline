@@ -132,11 +132,11 @@ export function NowPlayingPage({
 
   /* ================= UI ================= */
   return (
-    <div className="h-full flex flex-col lg:flex-row overflow-hidden bg-black text-white">
+    <div className="relative  h-full flex flex-col lg:flex-row overflow-hidden bg-black text-white">
 
       {/* BACKGROUND */}
       <div
-        className="bg-blur-cover"
+        className="absolute bg-blur-cover"
         style={{ backgroundImage: `url(${currentSong.coverUrl})` }}
       />
       <div className="absolute inset-0 bg-black/60" />
