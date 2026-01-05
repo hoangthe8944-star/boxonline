@@ -132,7 +132,7 @@ export function NowPlayingPage({
 
   /* ================= UI ================= */
   return (
-    <div className="group relative flex flex-col lg:flex-row bg-black text-white overflow-hidden">
+    <div className="h-full flex flex-col lg:flex-row relative overflow-hidden bg-black text-white">
 
       {/* BACKGROUND */}
       <div
@@ -181,7 +181,7 @@ export function NowPlayingPage({
               <Shuffle className="w-6 h-6 text-white/40" />
             </button>
           </div>
-
+                  
           {/* LYRICS */}
           <div className="w-full bg-white/5 rounded-[40px] p-8 backdrop-blur-md">
             <h3 className="text-xs uppercase text-white/30 mb-6">
