@@ -372,21 +372,22 @@
     color: currentColor;
   }
 
+  /* ===== BLURRED BACKGROUND COVER (CHẮC CHẮN MỜ) ===== */
   .bg-blur-cover {
     position: absolute;
     inset: 0;
     z-index: 0;
-    overflow: hidden;
-  }
 
-  .bg-blur-cover::before {
-    content: "";
-    position: absolute;
-    inset: -20%;
     background-size: cover;
     background-position: center;
-    filter: blur(80px);
+    background-repeat: no-repeat;
+
+    /* Nhân ảnh + mờ */
+    filter: blur(90px);
     transform: scale(1.2);
+
+    /* Giảm độ gắt */
+    opacity: 0.65;
   }
 
 
@@ -558,23 +559,6 @@
 @layer utilities {
   .pointer-events-none {
     pointer-events: none;
-  }
-
-  .bg-blur-cover {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    overflow: hidden;
-  }
-
-  .bg-blur-cover::before {
-    content: "";
-    position: absolute;
-    inset: -20%;
-    background-size: cover;
-    background-position: center;
-    filter: blur(80px);
-    transform: scale(1.2);
   }
 
   .sr-only {
