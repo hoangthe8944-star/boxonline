@@ -128,7 +128,7 @@ export const getLyrics = (track: string, artist: string, album?: string, duratio
         params: {
             track: track,
             artist: artist,
-            album: album,
+            // album: album,
             duration: duration ? Math.floor(duration) : undefined // Chuyển về số nguyên nếu là số thực
         },
         headers: {
