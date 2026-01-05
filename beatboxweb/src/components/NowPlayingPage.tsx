@@ -183,7 +183,7 @@ export function NowPlayingPage({
           </div>
                   
           {/* LYRICS */}
-          <div className="w-full bg-white/5 rounded-[40px] p-8 backdrop-blur-md">
+          <div className="w-full bg-white/5 rounded-[40px] pl-8 pt-8 pr-8 backdrop-blur-md ">
             <h3 className="text-xs uppercase text-white/30 mb-6">
               Lyrics
             </h3>
