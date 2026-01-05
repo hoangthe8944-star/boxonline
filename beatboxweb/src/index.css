@@ -165,6 +165,23 @@
     --default-mono-font-variation-settings: var(--font-mono--font-variation-settings);
   }
 }
+@layer utilities {
+  .backdrop-blur-2xl {
+    --tw-backdrop-blur: blur(40px);
+    backdrop-filter: var(--tw-backdrop-blur);
+  }
+
+  .backdrop-blur-3xl {
+    --tw-backdrop-blur: blur(60px);
+    backdrop-filter: var(--tw-backdrop-blur);
+  }
+
+  .backdrop-blur-4xl {
+    --tw-backdrop-blur: blur(80px);
+    backdrop-filter: var(--tw-backdrop-blur);
+  }
+}
+
 
 @layer base {
   *, :after, :before, ::backdrop {
