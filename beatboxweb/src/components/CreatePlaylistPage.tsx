@@ -11,7 +11,7 @@ import axios from "axios";
 import type { Song } from '../../api/apiclient';
 import { getRecentlyPlayedSongs } from '../../api/apiclient';
 // 1. Import component Grid chúng ta vừa viết
-import PlaylistCover from './PlaylistCover'; 
+import PlaylistCover from './PlaylistCover';
 
 interface CreatePlaylistPageProps {
   onBack: () => void;
@@ -65,7 +65,7 @@ export function CreatePlaylistPage({
 
     // ❌ KHÔNG setCoverImage(song.coverUrl) nữa 
     // Để coverImage là null -> PlaylistCover sẽ tự hiện Grid 4 bài đầu
-    
+
     toast.success(`Đã thêm "${song.title}"`);
   };
 
@@ -85,15 +85,15 @@ export function CreatePlaylistPage({
         tracks: Array.from(addedSongs),
         // ✅ Gửi coverImage là null để Backend lưu đúng ý đồ
         // (Và vì Backend đã thêm field này nên sẽ không còn lỗi 400)
-        coverImage: coverImage 
+        coverImage: coverImage
       };
       const config = {
-      headers: {
-        "currentUserId": currentUserId, // Lấy từ props của Component
-        "isAdmin": isAdmin.toString(),   // Lấy từ props của Component
-        "Content-Type": "application/json"
-      }
-    };
+        headers: {
+          "Content-Type": "application/json",
+          "currentUserId": currentUserId, // Lấy từ props của component CreatePlaylistPage
+          "isAdmin": isAdmin ? "true" : "false" // Lấy từ props
+        }
+      };
 
       console.log("Sending payload:", payload);
 
@@ -128,14 +128,14 @@ export function CreatePlaylistPage({
         {/* 2. AREA PREVIEW - SỬ DỤNG PLAYLISTCOVER ĐỂ HIỆN GRID */}
         <div className="lg:col-span-4 flex flex-col items-center gap-4">
           <div className="w-full aspect-square max-w-[300px]">
-             <PlaylistCover 
-                coverImage={coverImage} 
-                tracks={addedSongObjects} 
-                name={name}
-             />
+            <PlaylistCover
+              coverImage={coverImage}
+              tracks={addedSongObjects}
+              name={name}
+            />
           </div>
           <p className="text-sm text-white/40 italic">
-            {addedSongObjects.length < 4 
+            {addedSongObjects.length < 4
               ? `Thêm ${4 - addedSongObjects.length} bài nữa để hoàn tất Grid ảnh`
               : "Ảnh bìa Grid 2x2 đã sẵn sàng"}
           </p>
@@ -145,8 +145,8 @@ export function CreatePlaylistPage({
         <div className="lg:col-span-8 space-y-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-               <Label>Tên playlist</Label>
-               <Input
+              <Label>Tên playlist</Label>
+              <Input
                 className="bg-white/5 border-white/10"
                 placeholder="Tên playlist của tôi"
                 value={name}
@@ -156,8 +156,8 @@ export function CreatePlaylistPage({
             </div>
 
             <div className="space-y-2">
-               <Label>Mô tả</Label>
-               <Textarea
+              <Label>Mô tả</Label>
+              <Textarea
                 className="bg-white/5 border-white/10"
                 placeholder="Viết gì đó cho playlist này..."
                 value={description}
@@ -177,9 +177,9 @@ export function CreatePlaylistPage({
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <Label>Gợi ý cho bạn</Label>
-                <Button 
-                  type="button" 
-                  variant="ghost" 
+                <Button
+                  type="button"
+                  variant="ghost"
                   size="sm"
                   onClick={() => setSuggestedSongs([...suggestedSongs].sort(() => 0.5 - Math.random()))}
                 >
@@ -214,8 +214,8 @@ export function CreatePlaylistPage({
               </div>
             </div>
 
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full bg-green-500 hover:bg-green-600 text-black font-bold h-12"
               disabled={loading || !name}
             >
