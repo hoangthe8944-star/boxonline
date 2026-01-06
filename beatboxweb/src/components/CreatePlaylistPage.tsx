@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Camera, Music, Lock, Globe, ChevronLeft, Plus, RefreshCw, Play } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Camera, Music, Lock, Globe, ChevronLeft, Plus, RefreshCw } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -9,6 +9,7 @@ import { ImageWithFallback } from './figma/ImageWithFallback';
 import { toast } from "sonner";
 import axios from "axios";
 
+// Type bài hát tối thiểu
 interface Song {
   id: string;
   title: string;
@@ -18,9 +19,9 @@ interface Song {
 
 interface CreatePlaylistPageProps {
   onBack: () => void;
-  currentUserId: string; // cần để gửi header
+  currentUserId: string;
   isAdmin?: boolean;
-  onCreated?: (playlist: any) => void; // callback sau khi tạo xong
+  onCreated?: (playlist: any) => void;
 }
 
 export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onCreated }: CreatePlaylistPageProps) {
@@ -34,20 +35,23 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
   const [loading, setLoading] = useState(false);
 
   // ---------------------
-  // Fake song pool (hoặc lấy từ API)
+  // Lấy tất cả bài hát từ API khi component mount
   // ---------------------
-  const songPool: Song[] = [
-    { id: 's1', title: 'Blinding Lights', artistName: 'The Weeknd', coverUrl: 'https://images.unsplash.com/photo-1644855640845-ab57a047320e' },
-    { id: 's2', title: 'Levitating', artistName: 'Dua Lipa', coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819' },
-    { id: 's3', title: 'Bohemian Rhapsody', artistName: 'Queen', coverUrl: 'https://images.unsplash.com/photo-1604514288114-3851479df2f2' },
-    { id: 's4', title: 'Take Five', artistName: 'Dave Brubeck', coverUrl: 'https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f' },
-    { id: 's5', title: 'Strobe', artistName: 'Deadmau5', coverUrl: 'https://images.unsplash.com/photo-1624703307604-744ec383cbf4' },
-  ];
-
-  // khởi tạo suggestedSongs
-  useState(() => {
-    setSuggestedSongs(songPool.slice(0, 5));
-  });
+  useEffect(() => {
+    const fetchSongs = async () => {
+      try {
+        const res = await axios.get<Song[]>('https://backend-jfn4.onrender.com/api/public/songs/all', {
+          headers: { "ngrok-skip-browser-warning": "true" }
+        });
+        // Chỉ hiển thị 5 bài gợi ý
+        setSuggestedSongs(res.data.slice(0, 5));
+      } catch (err) {
+        console.error("Lỗi khi lấy bài hát:", err);
+        toast.error("Không lấy được danh sách bài hát.");
+      }
+    };
+    fetchSongs();
+  }, []);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -58,14 +62,21 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
     }
   };
 
-  const handleRefreshSuggestions = () => {
+  const handleRefreshSuggestions = async () => {
     setIsRefreshing(true);
-    setTimeout(() => {
-      const shuffled = [...songPool].sort(() => 0.5 - Math.random());
+    try {
+      const res = await axios.get<Song[]>('https://backend-jfn4.onrender.com/api/public/songs/all', {
+        headers: { "ngrok-skip-browser-warning": "true" }
+      });
+      const shuffled = res.data.sort(() => 0.5 - Math.random());
       setSuggestedSongs(shuffled.slice(0, 5));
-      setIsRefreshing(false);
       toast.success("Đã làm mới danh sách gợi ý");
-    }, 500);
+    } catch (err) {
+      console.error(err);
+      toast.error("Làm mới danh sách thất bại");
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const handleAddSong = (song: Song) => {
@@ -73,13 +84,9 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
     toast.success(`Đã thêm "${song.title}" vào playlist mới`);
   };
 
-  // ---------------------
-  // Call API tạo playlist
-  // ---------------------
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-
     setLoading(true);
 
     try {
@@ -89,7 +96,7 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
         type: "user",
         isPublic,
         tracks: Array.from(addedSongs),
-        coverImage, // giả sử backend nhận base64
+        coverImage,
       };
 
       const res = await axios.post(
@@ -105,11 +112,8 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
       );
 
       toast.success(`Playlist "${res.data.name}" đã được tạo!`);
-
-      // callback nếu muốn cập nhật playlist list ở cha
       if (onCreated) onCreated(res.data);
 
-      // reset form
       setName('');
       setDescription('');
       setIsPublic(true);
@@ -123,6 +127,9 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
     }
   };
 
+  // ---------------------
+  // UI giữ nguyên như cũ
+  // ---------------------
   return (
     <div className="p-4 lg:p-8 max-w-4xl mx-auto animate-in fade-in duration-500">
       <Button 
