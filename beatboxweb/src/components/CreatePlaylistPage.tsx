@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Camera, Music, Lock, Globe, ChevronLeft, Plus, RefreshCw } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -9,7 +9,9 @@ import { ImageWithFallback } from './figma/ImageWithFallback';
 import { toast } from "sonner";
 import axios from "axios";
 
-// Type bài hát tối thiểu
+// ---------------------
+// TYPE DEFINITIONS
+// ---------------------
 interface Song {
   id: string;
   title: string;
@@ -19,11 +21,14 @@ interface Song {
 
 interface CreatePlaylistPageProps {
   onBack: () => void;
-  currentUserId: string;
+  currentUserId: string; // cần để gửi header
   isAdmin?: boolean;
-  onCreated?: (playlist: any) => void;
+  onCreated?: (playlist: any) => void; // callback sau khi tạo xong
 }
 
+// ---------------------
+// COMPONENT
+// ---------------------
 export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onCreated }: CreatePlaylistPageProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -35,24 +40,32 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
   const [loading, setLoading] = useState(false);
 
   // ---------------------
-  // Lấy tất cả bài hát từ API khi component mount
+  // CALL API LẤY TẤT CẢ BÀI HÁT
   // ---------------------
   useEffect(() => {
     const fetchSongs = async () => {
       try {
-        const res = await axios.get<Song[]>('https://backend-jfn4.onrender.com/api/public/songs/all', {
-          headers: { "ngrok-skip-browser-warning": "true" }
+        const res = await axios.get<Song[]>("https://backend-jfn4.onrender.com/api/songs/all", {
+          headers: {
+            "ngrok-skip-browser-warning": "true"
+          }
         });
-        // Chỉ hiển thị 5 bài gợi ý
+        console.log("All songs fetched:", res.data);
+
+        // Chỉ hiển thị 5 bài
         setSuggestedSongs(res.data.slice(0, 5));
-      } catch (err) {
-        console.error("Lỗi khi lấy bài hát:", err);
-        toast.error("Không lấy được danh sách bài hát.");
+      } catch (err: any) {
+        console.error("Lỗi khi fetch tất cả bài hát:", err.response || err);
+        toast.error("Không thể tải danh sách bài hát");
       }
     };
+
     fetchSongs();
   }, []);
 
+  // ---------------------
+  // HANDLE FUNCTIONS
+  // ---------------------
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -62,21 +75,14 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
     }
   };
 
-  const handleRefreshSuggestions = async () => {
+  const handleRefreshSuggestions = () => {
     setIsRefreshing(true);
-    try {
-      const res = await axios.get<Song[]>('https://backend-jfn4.onrender.com/api/public/songs/all', {
-        headers: { "ngrok-skip-browser-warning": "true" }
-      });
-      const shuffled = res.data.sort(() => 0.5 - Math.random());
+    setTimeout(() => {
+      const shuffled = [...suggestedSongs].sort(() => 0.5 - Math.random());
       setSuggestedSongs(shuffled.slice(0, 5));
-      toast.success("Đã làm mới danh sách gợi ý");
-    } catch (err) {
-      console.error(err);
-      toast.error("Làm mới danh sách thất bại");
-    } finally {
       setIsRefreshing(false);
-    }
+      toast.success("Đã làm mới danh sách gợi ý");
+    }, 500);
   };
 
   const handleAddSong = (song: Song) => {
@@ -87,48 +93,61 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+
     setLoading(true);
 
     try {
-      const payload = {
+      // ---------------------
+      // Payload chuẩn backend
+      // ---------------------
+      const payload: any = {
         name,
         description,
         type: "user",
         isPublic,
-        tracks: Array.from(addedSongs),
-        coverImage,
       };
 
-      const res = await axios.post(
-        "https://backend-jfn4.onrender.com/api/playlists",
-        payload,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            currentUserId,
-            isAdmin,
-          },
-        }
-      );
+      // Chỉ gửi tracks nếu có bài hát
+      if (addedSongs.size > 0) {
+        // Nếu backend cần object {id}, map như sau
+        payload.tracks = Array.from(addedSongs).map(id => ({ id }));
+      }
 
+      // Chỉ gửi coverImage nếu có
+      if (coverImage) payload.coverImage = coverImage;
+
+      console.log("Payload gửi lên backend:", payload);
+
+      const res = await axios.post("https://backend-jfn4.onrender.com/api/playlists", payload, {
+        headers: {
+          "Content-Type": "application/json",
+          currentUserId,
+          isAdmin,
+        },
+      });
+
+      console.log("Response từ backend:", res.data);
       toast.success(`Playlist "${res.data.name}" đã được tạo!`);
+
       if (onCreated) onCreated(res.data);
 
+      // Reset form
       setName('');
       setDescription('');
       setIsPublic(true);
       setCoverImage(null);
       setAddedSongs(new Set());
+
     } catch (err: any) {
-      console.error(err);
-      toast.error("Tạo playlist thất bại, thử lại!");
+      console.error("Lỗi khi tạo playlist:", err.response || err);
+      toast.error("Tạo playlist thất bại, xem console để debug!");
     } finally {
       setLoading(false);
     }
   };
 
   // ---------------------
-  // UI giữ nguyên như cũ
+  // RENDER
   // ---------------------
   return (
     <div className="p-4 lg:p-8 max-w-4xl mx-auto animate-in fade-in duration-500">
