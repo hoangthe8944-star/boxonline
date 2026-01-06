@@ -11,6 +11,8 @@ import { ProfilePage } from './components/ProfilePage';
 import { CreatePlaylistPage } from './components/CreatePlaylistPage';
 import { LikedSongsPage } from './components/LikedSongsPage';
 import { RecentlyPlayedPage } from './components/RecentlyPlayedPage';
+import { PodcastPage } from './components/PodcastPage';
+
 import { VerifyPage } from './components/VerifyPage';
 import { LoginSuccess } from './components/LoginSuccess';
 import { recordPlayback } from '../api/apiclient';
@@ -32,7 +34,7 @@ export interface Playlist {
 
 export default function App() {
   // --- STATE QUẢN LÝ ---
-  const [currentPage, setCurrentPage] = useState<'home' | 'library' | 'playlists' | 'search' | 'nowplaying' | 'profile' | 'create-playlist' | 'liked-songs' | 'recently-played'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'library' | 'playlists' | 'search' | 'nowplaying' | 'profile' | 'create-playlist' | 'liked-songs' | 'recently-played' | 'podcast'>('home');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [token, setToken] = useState<string | null>(sessionStorage.getItem("accessToken"));
@@ -154,8 +156,9 @@ export default function App() {
           {currentPage === 'playlists' && <PlaylistsPage onPlaySong={handlePlaySong} onCreateClick={() => setCurrentPage('create-playlist')} />}
           {currentPage === 'profile' && <ProfilePage onLogout={handleLogout} />}
           {currentPage === 'liked-songs' && <LikedSongsPage onPlaySong={handlePlaySong} />}
+          {currentPage === 'podcast' && <PodcastPage />}
           {currentPage === 'recently-played' && <RecentlyPlayedPage onPlaySong={handlePlaySong} />}
-          {currentPage === 'nowplaying' && <NowPlayingPage currentSong={currentSong} isPlaying={isPlaying} onTogglePlay={() => setIsPlaying(!isPlaying)} onPlaySong={handlePlaySong} currentTime={currentTime}/>}
+          {currentPage === 'nowplaying' && <NowPlayingPage currentSong={currentSong} isPlaying={isPlaying} onTogglePlay={() => setIsPlaying(!isPlaying)} onPlaySong={handlePlaySong} currentTime={currentTime} />}
           {currentPage === 'create-playlist' && <CreatePlaylistPage onBack={() => setCurrentPage('playlists')} onSubmit={() => setCurrentPage('playlists')} />}
         </main>
 
