@@ -39,16 +39,16 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
           headers: { "ngrok-skip-browser-warning": "true" }
         });
         console.log("==> All songs fetched:", res.data.length);
-        setSuggestedSongs(res.data.slice(0,5));
-      } catch(err:any) {
+        setSuggestedSongs(res.data.slice(0, 5));
+      } catch (err: any) {
         console.error("Lỗi khi fetch tất cả bài hát:", err);
 
         // Fallback: lấy recent songs nếu có
         try {
           const recentRes = await getRecentlyPlayedSongs();
           console.log("==> Fallback recent songs:", recentRes.data.length);
-          setSuggestedSongs(recentRes.data.slice(0,5));
-        } catch(recentErr:any) {
+          setSuggestedSongs(recentRes.data.slice(0, 5));
+        } catch (recentErr: any) {
           console.error("Lỗi khi fetch recent songs:", recentErr);
           // fallback cứng nếu recent cũng lỗi
           setSuggestedSongs([]);
@@ -72,7 +72,7 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
     setIsRefreshing(true);
     setTimeout(() => {
       const shuffled = [...suggestedSongs].sort(() => 0.5 - Math.random());
-      setSuggestedSongs(shuffled.slice(0,5));
+      setSuggestedSongs(shuffled.slice(0, 5));
       setIsRefreshing(false);
       toast.success("Đã làm mới danh sách gợi ý");
     }, 500);
@@ -95,7 +95,7 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
         description,
         type: "user",
         isPublic,
-        tracks: Array.from(addedSongs),
+        tracks: Array.from(addedSongs).map(id => ({ id })),
         coverImage,
       };
 
@@ -188,8 +188,8 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
                     {isPublic ? 'Công khai' : 'Riêng tư'}
                   </Label>
                   <p className="text-sm text-white/50">
-                    {isPublic 
-                      ? 'Mọi người có thể nhìn thấy và phát playlist này' 
+                    {isPublic
+                      ? 'Mọi người có thể nhìn thấy và phát playlist này'
                       : 'Chỉ bạn mới có thể nhìn thấy và phát playlist này'}
                   </p>
                 </div>
@@ -205,7 +205,7 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
                   <RefreshCw className="w-4 h-4" />
                 </Button>
               </div>
-              
+
               <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden">
                 {suggestedSongs.map(song => (
                   <div key={song.id} className="flex items-center gap-3 p-3 hover:bg-white/5 transition-colors group border-b border-white/5 last:border-0">
