@@ -374,7 +374,8 @@
 
   /* ===== BLURRED BACKGROUND COVER (CHẮC CHẮN MỜ) ===== */
   .bg-blur-cover {
-    position: absolute;
+    position: fixed;
+    /* 👈 then chốt */
     inset: 0;
     z-index: 0;
 
@@ -382,12 +383,12 @@
     background-position: center;
     background-repeat: no-repeat;
 
-    /* Nhân ảnh + mờ */
     filter: blur(90px);
     transform: scale(1.2);
-
-    /* Giảm độ gắt */
     opacity: 0.65;
+
+    pointer-events: none;
+    /* 👈 không ảnh hưởng click */
   }
 
 
