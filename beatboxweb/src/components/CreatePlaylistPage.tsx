@@ -6,44 +6,54 @@ import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Switch } from './ui/switch';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import type { Song } from '../../api/apiclient';
 import { toast } from "sonner";
+import axios from "axios";
+
+interface Song {
+  id: string;
+  title: string;
+  artistName: string;
+  coverUrl: string;
+}
 
 interface CreatePlaylistPageProps {
   onBack: () => void;
-  onSubmit: (playlist: any) => void;
+  currentUserId: string; // cần để gửi header
+  isAdmin?: boolean;
+  onCreated?: (playlist: any) => void; // callback sau khi tạo xong
 }
 
-export function CreatePlaylistPage({ onBack, onSubmit }: CreatePlaylistPageProps) {
+export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onCreated }: CreatePlaylistPageProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [isPublic, setIsPublic] = useState(true);
   const [coverImage, setCoverImage] = useState<string | null>(null);
+  const [addedSongs, setAddedSongs] = useState<Set<string>>(new Set());
+  const [suggestedSongs, setSuggestedSongs] = useState<Song[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [loading, setLoading] = useState(false);
 
+  // ---------------------
+  // Fake song pool (hoặc lấy từ API)
+  // ---------------------
   const songPool: Song[] = [
-    // { id: 's1', title: 'Blinding Lights', artist: 'The Weeknd', album: 'After Hours', duration: '3:20', cover: 'https://images.unsplash.com/photo-1644855640845-ab57a047320e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtdXNpYyUyMGFsYnVtJTIwY292ZXJ8ZW58MXx8fHwxNzY0NDEwNDg0fDA&ixlib=rb-4.1.0&q=80&w=1080' },
-    // { id: 's2', title: 'Levitating', artist: 'Dua Lipa', album: 'Future Nostalgia', duration: '3:23', cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwb3AlMjBtdXNpY3xlbnwxfHx8fDE3NjQ0MTc3Njh8MA&ixlib=rb-4.1.0&q=80&w=1080' },
-    // { id: 's3', title: 'Bohemian Rhapsody', artist: 'Queen', album: 'A Night at the Opera', duration: '5:55', cover: 'https://images.unsplash.com/photo-1604514288114-3851479df2f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb2NrJTIwYmFuZHxlbnwxfHx8fDE3NjQ0MTU0MjR8MA&ixlib=rb-4.1.0&q=80&w=1080' },
-    // { id: 's4', title: 'Take Five', artist: 'Dave Brubeck', album: 'Time Out', duration: '5:24', cover: 'https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxqYXp6JTIwbXVzaWN8ZW58MXx8fHwxNzY0Mzc2NTQ5fDA&ixlib=rb-4.1.0&q=80&w=1080' },
-    // { id: 's5', title: 'Strobe', artist: 'Deadmau5', album: 'For Lack of a Better Name', duration: '10:37', cover: 'https://images.unsplash.com/photo-1624703307604-744ec383cbf4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVjdHJvbmljJTIwbXVzaWN8ZW58MXx8fHwxNzY0NDEwODgyfDA&ixlib=rb-4.1.0&q=80&w=1080' },
-    // { id: 's6', title: 'Watermelon Sugar', artist: 'Harry Styles', album: 'Fine Line', duration: '2:54', cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwb3AlMjBtdXNpY3xlbnwxfHx8fDE3NjQ0MTc3Njh8MA&ixlib=rb-4.1.0&q=80&w=1080' },
-    // { id: 's7', title: 'Circles', artist: 'Post Malone', album: 'Hollywood\'s Bleeding', duration: '3:35', cover: 'https://images.unsplash.com/photo-1701506516420-3ef4b27413c9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb25jZXJ0JTIwbmlnaHR8ZW58MXx8fHwxNzY0NDgzMjk4fDA&ixlib=rb-4.1.0&q=80&w=1080' },
-    // { id: 's8', title: 'Hotel California', artist: 'Eagles', album: 'Hotel California', duration: '6:30', cover: 'https://images.unsplash.com/photo-1604514288114-3851479df2f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb2NrJTIwYmFuZHxlbnwxfHx8fDE3NjQ0MTU0MjR8MA&ixlib=rb-4.1.0&q=80&w=1080' },
-    // { id: 's9', title: 'Starboy', artist: 'The Weeknd ft. Daft Punk', album: 'Starboy', duration: '3:50', cover: 'https://images.unsplash.com/photo-1644855640845-ab57a047320e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtdXNpYyUyMGFsYnVtJTIwY292ZXJ8ZW58MXx8fHwxNzY0NDEwNDg0fDA&ixlib=rb-4.1.0&q=80&w=1080' },
-    // { id: 's10', title: 'Titanium', artist: 'David Guetta ft. Sia', album: 'Nothing but the Beat', duration: '4:05', cover: 'https://images.unsplash.com/photo-1624703307604-744ec383cbf4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVjdHJvbmljJTIwbXVzaWN8ZW58MXx8fHwxNzY0NDEwODgyfDA&ixlib=rb-4.1.0&q=80&w=1080' },
+    { id: 's1', title: 'Blinding Lights', artistName: 'The Weeknd', coverUrl: 'https://images.unsplash.com/photo-1644855640845-ab57a047320e' },
+    { id: 's2', title: 'Levitating', artistName: 'Dua Lipa', coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819' },
+    { id: 's3', title: 'Bohemian Rhapsody', artistName: 'Queen', coverUrl: 'https://images.unsplash.com/photo-1604514288114-3851479df2f2' },
+    { id: 's4', title: 'Take Five', artistName: 'Dave Brubeck', coverUrl: 'https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f' },
+    { id: 's5', title: 'Strobe', artistName: 'Deadmau5', coverUrl: 'https://images.unsplash.com/photo-1624703307604-744ec383cbf4' },
   ];
 
-  const [suggestedSongs, setSuggestedSongs] = useState<Song[]>(songPool.slice(0, 5));
-  const [addedSongs, setAddedSongs] = useState<Set<string>>(new Set());
+  // khởi tạo suggestedSongs
+  useState(() => {
+    setSuggestedSongs(songPool.slice(0, 5));
+  });
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setCoverImage(reader.result as string);
-      };
+      reader.onloadend = () => setCoverImage(reader.result as string);
       reader.readAsDataURL(file);
     }
   };
@@ -59,23 +69,58 @@ export function CreatePlaylistPage({ onBack, onSubmit }: CreatePlaylistPageProps
   };
 
   const handleAddSong = (song: Song) => {
-    setAddedSongs(prev => {
-      const newSet = new Set(prev);
-      newSet.add(song.id);
-      return newSet;
-    });
+    setAddedSongs(prev => new Set(prev).add(song.id));
     toast.success(`Đã thêm "${song.title}" vào playlist mới`);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // ---------------------
+  // Call API tạo playlist
+  // ---------------------
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
-      name,
-      description,
-      isPublic,
-      coverImage,
-      songs: Array.from(addedSongs)
-    });
+    if (!name.trim()) return;
+
+    setLoading(true);
+
+    try {
+      const payload = {
+        name,
+        description,
+        type: "user",
+        isPublic,
+        tracks: Array.from(addedSongs),
+        coverImage, // giả sử backend nhận base64
+      };
+
+      const res = await axios.post(
+        "https://backend-jfn4.onrender.com/api/playlists",
+        payload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            currentUserId,
+            isAdmin,
+          },
+        }
+      );
+
+      toast.success(`Playlist "${res.data.name}" đã được tạo!`);
+
+      // callback nếu muốn cập nhật playlist list ở cha
+      if (onCreated) onCreated(res.data);
+
+      // reset form
+      setName('');
+      setDescription('');
+      setIsPublic(true);
+      setCoverImage(null);
+      setAddedSongs(new Set());
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Tạo playlist thất bại, thử lại!");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -96,25 +141,14 @@ export function CreatePlaylistPage({ onBack, onSubmit }: CreatePlaylistPageProps
         <div className="lg:col-span-4 flex flex-col items-center space-y-4">
           <div className="relative group w-full aspect-square max-w-[300px] bg-white/5 rounded-xl border-2 border-dashed border-white/20 flex flex-col items-center justify-center overflow-hidden transition-all hover:border-white/40 hover:bg-white/10">
             {coverImage ? (
-              <img 
-                src={coverImage} 
-                alt="Playlist cover" 
-                className="w-full h-full object-cover"
-              />
+              <img src={coverImage} alt="Playlist cover" className="w-full h-full object-cover" />
             ) : (
               <div className="flex flex-col items-center text-white/50 group-hover:text-white/80">
                 <Music className="w-16 h-16 mb-4" />
                 <span className="text-sm font-medium">Tải ảnh bìa</span>
               </div>
             )}
-            
-            <input 
-              type="file" 
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            />
-            
+            <input type="file" accept="image/*" onChange={handleImageUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
               <Camera className="w-8 h-8 text-white" />
             </div>
@@ -163,11 +197,7 @@ export function CreatePlaylistPage({ onBack, onSubmit }: CreatePlaylistPageProps
                       : 'Chỉ bạn mới có thể nhìn thấy và phát playlist này'}
                   </p>
                 </div>
-                <Switch
-                  checked={isPublic}
-                  onCheckedChange={setIsPublic}
-                  className="data-[state=checked]:bg-cyan-500"
-                />
+                <Switch checked={isPublic} onCheckedChange={setIsPublic} className="data-[state=checked]:bg-cyan-500" />
               </div>
             </div>
 
@@ -175,34 +205,19 @@ export function CreatePlaylistPage({ onBack, onSubmit }: CreatePlaylistPageProps
             <div className="space-y-3 pt-2">
               <div className="flex items-center justify-between">
                 <Label className="text-white font-medium">Thêm bài hát</Label>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleRefreshSuggestions}
-                  className={`text-blue-300 hover:text-white hover:bg-white/10 h-8 px-2 ${isRefreshing ? 'animate-spin' : ''}`}
-                >
+                <Button type="button" variant="ghost" size="sm" onClick={handleRefreshSuggestions} className={`text-blue-300 hover:text-white hover:bg-white/10 h-8 px-2 ${isRefreshing ? 'animate-spin' : ''}`}>
                   <RefreshCw className="w-4 h-4" />
                 </Button>
               </div>
               
               <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden">
-                {suggestedSongs.map((song) => (
-                  <div 
-                    key={song.id}
-                    className="flex items-center gap-3 p-3 hover:bg-white/5 transition-colors group border-b border-white/5 last:border-0"
-                  >
-                    <ImageWithFallback
-                      src={song.coverUrl}
-                      alt={song.title}
-                      className="w-10 h-10 rounded object-cover shadow-sm"
-                    />
-                    
+                {suggestedSongs.map(song => (
+                  <div key={song.id} className="flex items-center gap-3 p-3 hover:bg-white/5 transition-colors group border-b border-white/5 last:border-0">
+                    <ImageWithFallback src={song.coverUrl} alt={song.title} className="w-10 h-10 rounded object-cover shadow-sm" />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm text-white truncate">{song.title}</p>
                       <p className="text-xs text-blue-300 truncate">{song.artistName}</p>
                     </div>
-
                     <Button
                       type="button"
                       size="icon"
@@ -211,11 +226,7 @@ export function CreatePlaylistPage({ onBack, onSubmit }: CreatePlaylistPageProps
                       disabled={addedSongs.has(song.id)}
                       className={`h-8 w-8 rounded-full ${addedSongs.has(song.id) ? 'text-green-500 bg-green-500/10' : 'text-blue-300 hover:text-cyan-400 hover:bg-cyan-400/10'}`}
                     >
-                      {addedSongs.has(song.id) ? (
-                         <div className="w-2 h-2 rounded-full bg-current" />
-                      ) : (
-                        <Plus className="w-5 h-5" />
-                      )}
+                      {addedSongs.has(song.id) ? <div className="w-2 h-2 rounded-full bg-current" /> : <Plus className="w-5 h-5" />}
                     </Button>
                   </div>
                 ))}
@@ -223,20 +234,11 @@ export function CreatePlaylistPage({ onBack, onSubmit }: CreatePlaylistPageProps
             </div>
 
             <div className="pt-8 flex items-center justify-end gap-4 mt-6 border-t border-white/10">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={onBack}
-                className="bg-transparent border-white/20 text-white/80 hover:text-white hover:bg-white/10 hover:border-white/40 h-12 px-6 rounded-full transition-colors"
-              >
+              <Button type="button" variant="outline" onClick={onBack} className="bg-transparent border-white/20 text-white/80 hover:text-white hover:bg-white/10 hover:border-white/40 h-12 px-6 rounded-full transition-colors">
                 Hủy
               </Button>
-              <Button 
-                type="submit"
-                disabled={!name.trim()}
-                className="h-12 px-8 bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-white font-bold text-base border-0 min-w-[160px] shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] rounded-full transition-all transform hover:-translate-y-0.5"
-              >
-                Tạo Playlist
+              <Button type="submit" disabled={!name.trim() || loading} className="h-12 px-8 bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-white font-bold text-base border-0 min-w-[160px] shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] rounded-full transition-all transform hover:-translate-y-0.5">
+                {loading ? "Đang tạo..." : "Tạo Playlist"}
               </Button>
             </div>
           </form>
