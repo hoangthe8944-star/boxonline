@@ -386,6 +386,9 @@
     filter: blur(90px);
     transform: scale(1.2);
     opacity: 0.65;
+    width: 75px;
+    height: 75px;
+    padding-bottom: 10px;
 
     pointer-events: none;
     /* 👈 không ảnh hưởng click */
