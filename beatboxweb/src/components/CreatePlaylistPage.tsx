@@ -29,28 +29,25 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
   const [loading, setLoading] = useState(false);
 
   // ---------------------
-  // Fetch danh sách bài hát gợi ý
+  // Fetch danh sách bài hát gợi ý (fallback recent nếu all songs lỗi)
   // ---------------------
   useEffect(() => {
     const fetchSuggestedSongs = async () => {
-      console.log("==> Fetching suggested songs...");
+      console.log("==> Fetching all public songs...");
       try {
-        const res = await axios.get<Song[]>('https://backend-jfn4.onrender.com/api/songs/all', {
-          headers: { "ngrok-skip-browser-warning": "true" }
-        });
-        console.log("==> All songs fetched:", res.data.length);
+        const res = await axios.get<Song[]>('https://backend-jfn4.onrender.com/api/songs/all');
+        console.log("==> All public songs:", res.data.length);
         setSuggestedSongs(res.data.slice(0, 5));
       } catch (err: any) {
         console.error("Lỗi khi fetch tất cả bài hát:", err);
 
-        // Fallback: lấy recent songs nếu có
+        // Fallback: lấy recent songs
         try {
           const recentRes = await getRecentlyPlayedSongs();
           console.log("==> Fallback recent songs:", recentRes.data.length);
           setSuggestedSongs(recentRes.data.slice(0, 5));
         } catch (recentErr: any) {
           console.error("Lỗi khi fetch recent songs:", recentErr);
-          // fallback cứng nếu recent cũng lỗi
           setSuggestedSongs([]);
         }
       }
@@ -95,10 +92,11 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
         description,
         type: "user",
         isPublic,
-        tracks: Array.from(addedSongs), // chỉ mảng id string
-        coverImage: coverImage || "",    // fallback nếu chưa có ảnh
+        tracks: Array.from(addedSongs),  // ✅ chỉ mảng string IDs
+        coverImage: coverImage || "",    // fallback nếu chưa upload
       };
-      console.log("Playlist payload:", payload);
+
+      console.log("Sending playlist creation payload:", payload);
 
       const res = await axios.post(
         "https://backend-jfn4.onrender.com/api/playlists",
@@ -106,22 +104,22 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
         {
           headers: {
             "Content-Type": "application/json",
-            currentUserId,
-            isAdmin,
           },
         }
       );
 
+      console.log("Playlist created:", res.data);
       toast.success(`Playlist "${res.data.name}" đã được tạo!`);
       if (onCreated) onCreated(res.data);
 
+      // Reset form
       setName('');
       setDescription('');
       setIsPublic(true);
       setCoverImage(null);
       setAddedSongs(new Set());
     } catch (err: any) {
-      console.error(err);
+      console.error("Lỗi khi tạo playlist:", err);
       toast.error("Tạo playlist thất bại, thử lại!");
     } finally {
       setLoading(false);
