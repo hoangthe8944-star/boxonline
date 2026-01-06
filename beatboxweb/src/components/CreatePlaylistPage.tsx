@@ -87,12 +87,20 @@ export function CreatePlaylistPage({
         // (Và vì Backend đã thêm field này nên sẽ không còn lỗi 400)
         coverImage: coverImage 
       };
+      const config = {
+      headers: {
+        "currentUserId": currentUserId, // Lấy từ props của Component
+        "isAdmin": isAdmin.toString(),   // Lấy từ props của Component
+        "Content-Type": "application/json"
+      }
+    };
 
       console.log("Sending payload:", payload);
 
       const res = await axios.post(
         "https://backend-jfn4.onrender.com/api/playlists",
-        payload
+        payload,
+        config
       );
 
       toast.success(`Playlist "${res.data.name}" đã tạo`);
