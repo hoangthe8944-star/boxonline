@@ -95,9 +95,10 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
         description,
         type: "user",
         isPublic,
-        tracks: Array.from(addedSongs).map(id => ({ id })),
-        coverImage,
+        tracks: Array.from(addedSongs), // chỉ mảng id string
+        coverImage: coverImage || "",    // fallback nếu chưa có ảnh
       };
+      console.log("Playlist payload:", payload);
 
       const res = await axios.post(
         "https://backend-jfn4.onrender.com/api/playlists",
