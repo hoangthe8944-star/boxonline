@@ -169,6 +169,8 @@
     --default-mono-font-family: var(--font-mono);
     --default-mono-font-feature-settings: var(--font-mono--font-feature-settings);
     --default-mono-font-variation-settings: var(--font-mono--font-variation-settings);
+    --animate-ping: ping 1s cubic-bezier(0, 0, .2, 1) infinite;
+
   }
 }
 
@@ -1336,6 +1338,10 @@
 
   .border-blue-500\/30 {
     border-color: color-mix(in srgb, oklch(.623 .214 259.815) 30%, transparent);
+  }
+
+  .animate-ping {
+    animation: var(--animate-ping);
   }
 
   @supports (color: color-mix(in lab, red, red)) {
