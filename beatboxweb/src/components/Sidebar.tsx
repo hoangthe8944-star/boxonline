@@ -1,8 +1,8 @@
 import { Home, Library, ListMusic, Search, Heart, Clock, User, Crown, Mic } from 'lucide-react';
 
 interface SidebarProps {
-  currentPage: 'home' | 'library' | 'playlists' | 'search' | 'nowplaying' | 'profile' | 'create-playlist' | 'liked-songs' | 'recently-played' | 'podcast';
-  onNavigate: (page: 'home' | 'library' | 'playlists' | 'search' | 'nowplaying' | 'profile' | 'create-playlist' | 'liked-songs' | 'recently-played' | 'podcast') => void;
+  currentPage: 'home' | 'library' | 'playlists' | 'search' | 'nowplaying' | 'profile' | 'create-playlist' | 'liked-songs' | 'recently-played' | 'podcast' | 'playlist-detail';
+  onNavigate: (page: 'home' | 'library' | 'playlists' | 'search' | 'nowplaying' | 'profile' | 'create-playlist' | 'liked-songs' | 'recently-played' | 'podcast' | 'playlist-detail') => void;
   isOpen: boolean;
   onClose: () => void;
   onProfileClick: () => void;
@@ -47,8 +47,8 @@ export function Sidebar({ currentPage, onNavigate, isOpen, onClose, onProfileCli
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
                 className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg transition-all ${isActive
-                    ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 shadow-lg shadow-cyan-500/10'
-                    : 'text-blue-200 hover:text-white hover:bg-blue-800/30'
+                  ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 shadow-lg shadow-cyan-500/10'
+                  : 'text-blue-200 hover:text-white hover:bg-blue-800/30'
                   }`}
               >
                 <Icon className="w-6 h-6" />
@@ -72,8 +72,8 @@ export function Sidebar({ currentPage, onNavigate, isOpen, onClose, onProfileCli
                   key={index}
                   onClick={() => 'id' in item && onNavigate(item.id)}
                   className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg transition-all ${isActive
-                      ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300'
-                      : 'text-blue-200 hover:text-white hover:bg-blue-800/30'
+                    ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300'
+                    : 'text-blue-200 hover:text-white hover:bg-blue-800/30'
                     }`}
                 >
                   <Icon className="w-5 h-5" />

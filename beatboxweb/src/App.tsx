@@ -12,6 +12,7 @@ import { CreatePlaylistPage } from './components/CreatePlaylistPage';
 import { LikedSongsPage } from './components/LikedSongsPage';
 import { RecentlyPlayedPage } from './components/RecentlyPlayedPage';
 import { PodcastPage } from './components/PodcastPage';
+import { PlaylistDetailPage } from './components/PlaylistDetailPage';
 
 import { VerifyPage } from './components/VerifyPage';
 import { LoginSuccess } from './components/LoginSuccess';
@@ -23,22 +24,36 @@ import type { Song } from '../api/apiclient';
 import './index.css';
 import { Menu } from 'lucide-react';
 
+// Định nghĩa Type cho các trang để đồng bộ với Sidebar
+export type PageType = 'home' | 'library' | 'playlists' | 'search' | 'nowplaying' | 'profile' | 'create-playlist' | 'liked-songs' | 'recently-played' | 'podcast' | 'playlist-detail';
+
 export interface Playlist {
   id: string;
   name: string;
   cover: string;
   songCount: number;
   description?: string;
+  owner?: string;
+  updatedAt?: string;
+  songs?: Song[];
 }
-
 
 export default function App() {
   // --- STATE QUẢN LÝ ---
-  const [currentPage, setCurrentPage] = useState<'home' | 'library' | 'playlists' | 'search' | 'nowplaying' | 'profile' | 'create-playlist' | 'liked-songs' | 'recently-played' | 'podcast'>('home');
+  const [currentPage, setCurrentPage] = useState<PageType>('home');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [token, setToken] = useState<string | null>(sessionStorage.getItem("accessToken"));
   const [authView, setAuthView] = useState<'login' | 'register'>('login');
+  
+  // State lưu playlist đang xem chi tiết
+  const [selectedPlaylist, setSelectedPlaylist] = useState<any>(null);
+
+  // --- THÔNG TIN USER ---
+  const userJson = sessionStorage.getItem("user");
+  const user = userJson ? JSON.parse(userJson) : null;
+  const currentUserId = user?.id || "";
+  const isAdmin = user?.roles?.includes('ROLE_ADMIN') || false;
 
   // --- STATE NHẠC ---
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
@@ -47,9 +62,7 @@ export default function App() {
   const [playQueue, setPlayQueue] = useState<Song[]>([]);
   const [currentQueueIndex, setCurrentQueueIndex] = useState<number>(0);
 
-
-
-  // ✅ 1. THEO DÕI URL HASH (Xử lý mượt mà cho GitHub Pages)
+  // ✅ 1. THEO DÕI URL HASH (GitHub Pages)
   const [currentHash, setCurrentHash] = useState(window.location.hash);
   useEffect(() => {
     const handleHashChange = () => setCurrentHash(window.location.hash);
@@ -57,10 +70,9 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  // ✅ 2. XỬ LÝ AUTH THÀNH CÔNG
+  // ✅ 2. XỬ LÝ AUTH
   const handleAuthSuccess = (newToken: string) => {
     setToken(newToken);
-    // Reload để xóa sạch state cũ và nạp dữ liệu user mới từ session
     window.location.href = "/boxonline/";
   };
 
@@ -72,7 +84,13 @@ export default function App() {
     window.location.reload();
   };
 
-  // ✅ 3. HÀM PHÁT NHẠC
+  // ✅ 3. ĐIỀU HƯỚNG PLAYLIST
+  const handleOpenPlaylist = (playlist: any) => {
+    setSelectedPlaylist(playlist);
+    setCurrentPage('playlist-detail');
+  };
+
+  // ✅ 4. HÀM PHÁT NHẠC
   const handlePlaySong = (song: Song, contextPlaylist: Song[] = []) => {
     setCurrentSong(song);
     setIsPlaying(true);
@@ -83,15 +101,10 @@ export default function App() {
     recordPlayback(song.id).catch(err => console.error("Playback record error:", err));
   };
 
-  // =========================================================
-  // 🛡️ CHIẾN THUẬT RENDER TÁCH BIỆT (KHÔNG CHỒNG LẤP)
-  // =========================================================
-
-  // TRƯỜNG HỢP A: Đang ở trang xử lý của Google hoặc Verify (Render Full màn hình)
+  // --- RENDER TÁCH BIỆT ---
   if (currentHash.includes('/login-success')) return <LoginSuccess />;
   if (currentHash.includes('/verify')) return <VerifyPage />;
 
-  // TRƯỜNG HỢP B: Chưa đăng nhập (Render Full trang Login/Register)
   if (!token) {
     const authBg = "flex items-center justify-center min-h-screen bg-slate-950 bg-[url('https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center bg-no-repeat bg-blend-overlay";
     return (
@@ -107,7 +120,6 @@ export default function App() {
     );
   }
 
-  // TRƯỜNG HỢP C: Đã đăng nhập (Render Giao diện App chính)
   return (
     <div className="flex h-screen bg-gradient-to-br from-blue-700 via-cyan-600 to-cyan-400 text-white overflow-hidden">
       {/* Mobile Menu Button */}
@@ -120,10 +132,7 @@ export default function App() {
 
       {/* Overlay for mobile */}
       {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
+        <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={() => setIsSidebarOpen(false)} />
       )}
 
       {/* Sidebar */}
@@ -153,13 +162,47 @@ export default function App() {
           {currentPage === 'home' && <HomePage onPlaySong={handlePlaySong} />}
           {currentPage === 'library' && <LibraryPage onPlaySong={handlePlaySong} />}
           {currentPage === 'search' && <SearchPage searchQuery={searchQuery} onPlaySong={handlePlaySong} />}
-          {currentPage === 'playlists' && <PlaylistsPage onPlaySong={handlePlaySong} onCreateClick={() => setCurrentPage('create-playlist')} />}
+          
+          {currentPage === 'playlists' && (
+            <PlaylistsPage 
+              currentUserId={currentUserId}
+              onPlaySong={handlePlaySong} 
+              onCreateClick={() => setCurrentPage('create-playlist')} 
+              onPlaylistClick={handleOpenPlaylist}
+            />
+          )}
+
+          {currentPage === 'playlist-detail' && selectedPlaylist && (
+            <PlaylistDetailPage
+              playlist={selectedPlaylist}
+              onBack={() => setCurrentPage('playlists')}
+              onPlaySong={handlePlaySong}
+            />
+          )}
+
           {currentPage === 'profile' && <ProfilePage onLogout={handleLogout} />}
           {currentPage === 'liked-songs' && <LikedSongsPage onPlaySong={handlePlaySong} />}
           {currentPage === 'podcast' && <PodcastPage />}
           {currentPage === 'recently-played' && <RecentlyPlayedPage onPlaySong={handlePlaySong} />}
-          {currentPage === 'nowplaying' && <NowPlayingPage currentSong={currentSong} isPlaying={isPlaying} onTogglePlay={() => setIsPlaying(!isPlaying)} onPlaySong={handlePlaySong} currentTime={currentTime} />}
-          {currentPage === 'create-playlist' && <CreatePlaylistPage onBack={() => setCurrentPage('playlists')} onSubmit={() => setCurrentPage('playlists')} />}
+          
+          {currentPage === 'nowplaying' && (
+            <NowPlayingPage 
+              currentSong={currentSong} 
+              isPlaying={isPlaying} 
+              onTogglePlay={() => setIsPlaying(!isPlaying)} 
+              onPlaySong={handlePlaySong} 
+              currentTime={currentTime} 
+            />
+          )}
+
+          {currentPage === 'create-playlist' && (
+            <CreatePlaylistPage 
+              currentUserId={currentUserId}
+              isAdmin={isAdmin}
+              onBack={() => setCurrentPage('playlists')} 
+              onCreated={() => setCurrentPage('playlists')} 
+            />
+          )}
         </main>
 
         <MusicPlayer

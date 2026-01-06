@@ -1,4 +1,4 @@
-import { Play, Clock, Heart, Share2, MoreHorizontal, Mic, Radio, Headphones, Cast, Users, Signal } from 'lucide-react';
+import { Play, Clock, Heart, Share2, MoreHorizontal, Mic, Radio, Headphones, Cast, Users, Signal, Video } from 'lucide-react';
 import { Button } from './ui/button';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
@@ -17,9 +17,10 @@ interface Podcast {
 
 interface PodcastPageProps {
   onPlayPodcast?: (podcast: any) => void;
+  onStartLive?: () => void;
 }
 
-export function PodcastPage({ onPlayPodcast }: PodcastPageProps) {
+export function PodcastPage({ onPlayPodcast, onStartLive }: PodcastPageProps) {
   const categories = [
     { id: 'all', label: 'Tất cả', icon: Mic },
     { id: 'tech', label: 'Công nghệ', icon: Radio },
@@ -126,8 +127,19 @@ export function PodcastPage({ onPlayPodcast }: PodcastPageProps) {
     <div className="p-6 lg:p-8 space-y-8 animate-in fade-in duration-500">
       {/* Header */}
       <div className="flex flex-col gap-4">
-        <h1 className="text-4xl font-bold text-white">Podcast</h1>
-        <p className="text-blue-200">Khám phá những câu chuyện thú vị và kiến thức bổ ích</p>
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-4xl font-bold text-white">Podcast</h1>
+            <p className="text-blue-200">Khám phá những câu chuyện thú vị và kiến thức bổ ích</p>
+          </div>
+          <Button 
+            onClick={onStartLive}
+            className="bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-600/20 font-semibold gap-2"
+          >
+            <Video className="w-4 h-4" />
+            Bắt đầu Live
+          </Button>
+        </div>
         
         {/* Categories */}
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">

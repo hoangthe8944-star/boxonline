@@ -1,6 +1,7 @@
 import { Play } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import type { Artist } from './ArtistPage';
 
 // ✅ BƯỚC 1: IMPORT CÁC HÀM API VÀ TYPE
 import type { Song } from '../../api/apiclient';
@@ -20,16 +21,77 @@ import type { Playlist } from '../App';
 
 interface HomePageProps {
   onPlaySong: (song: Song, contextPlaylist: Song[]) => void;
+  onArtistClick?: (artist: Artist) => void;
+
 }
 
-export function HomePage({ onPlaySong }: HomePageProps) {
+export function HomePage({ onPlaySong, onArtistClick }: HomePageProps) {
 
   // ✅ BƯỚC 2: TẠO STATE MỚI ĐỂ LƯU DỮ LIỆU TỪ API
   const [recentlyPlayed, setRecentlyPlayed] = useState<Song[]>([]);
   const [recommendedSongs, setRecommendedSongs] = useState<Song[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [greeting, setGreeting] = useState('Chào buổi tối');
 
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) {
+      setGreeting('Chào buổi sáng');
+    } else if (hour >= 12 && hour < 18) {
+      setGreeting('Chào buổi chiều');
+    } else {
+      setGreeting('Chào buổi tối');
+    }
+  }, []);
+
+  const featuredArtists: Artist[] = [
+    {
+      id: 'fa1',
+      name: 'The Weeknd',
+      avatar: 'https://images.unsplash.com/photo-1644855640845-ab57a047320e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtdXNpYyUyMGFsYnVtJTIwY292ZXJ8ZW58MXx8fHwxNzY0NDEwNDg0fDA&ixlib=rb-4.1.0&q=80&w=1080',
+      cover: 'https://images.unsplash.com/photo-1644855640845-ab57a047320e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtdXNpYyUyMGFsYnVtJTIwY292ZXJ8ZW58MXx8fHwxNzY0NDEwNDg0fDA&ixlib=rb-4.1.0&q=80&w=1080',
+      listeners: '102.5M',
+      verified: true,
+      description: 'The Weeknd là một ca sĩ, nhạc sĩ và nhà sản xuất thu âm người Canada. Được biết đến với sự linh hoạt trong âm nhạc và ca từ đen tối, anh là một nhân vật nổi bật trong âm nhạc đương đại.'
+    },
+    {
+      id: 'fa2',
+      name: 'Taylor Swift',
+      avatar: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwb3AlMjBtdXNpY3xlbnwxfHx8fDE3NjQ0MTc3Njh8MA&ixlib=rb-4.1.0&q=80&w=1080',
+      cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwb3AlMjBtdXNpY3xlbnwxfHx8fDE3NjQ0MTc3Njh8MA&ixlib=rb-4.1.0&q=80&w=1080',
+      listeners: '98.3M',
+      verified: true,
+      description: 'Taylor Swift là một ca sĩ kiêm nhạc sĩ người Mỹ. Cô là một trong những nghệ sĩ bán đĩa nhạc chạy nhất thế giới và là nữ nghệ sĩ được nghe nhiều nhất trên Spotify.'
+    },
+    {
+      id: 'fa3',
+      name: 'BTS',
+      avatar: 'https://images.unsplash.com/photo-1701506516420-3ef4b27413c9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb25jZXJ0JTIwbmlnaHR8ZW58MXx8fHwxNzY0NDgzMjk4fDA&ixlib=rb-4.1.0&q=80&w=1080',
+      cover: 'https://images.unsplash.com/photo-1701506516420-3ef4b27413c9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb25jZXJ0JTIwbmlnaHR8ZW58MXx8fHwxNzY0NDgzMjk4fDA&ixlib=rb-4.1.0&q=80&w=1080',
+      listeners: '45.2M',
+      verified: true,
+      description: 'BTS là một nhóm nhạc nam Hàn Quốc được thành lập vào năm 2010. Nhóm bao gồm 7 thành viên: RM, Jin, Suga, J-Hope, Jimin, V và Jungkook.'
+    },
+    {
+      id: 'fa4',
+      name: 'Son Tung MTP',
+      avatar: 'https://images.unsplash.com/photo-1621644820975-34407009f303?auto=format&fit=crop&q=80&w=300',
+      cover: 'https://images.unsplash.com/photo-1621644820975-34407009f303?auto=format&fit=crop&q=80&w=300',
+      listeners: '5.5M',
+      verified: true,
+      description: 'Sơn Tùng M-TP là một nam ca sĩ kiêm sáng tác nhạc, rapper và diễn viên người Việt Nam.'
+    },
+    {
+      id: 'fa5',
+      name: 'Justin Bieber',
+      avatar: 'https://images.unsplash.com/photo-1624703307604-744ec383cbf4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVjdHJvbmljJTIwbXVzaWN8ZW58MXx8fHwxNzY0NDEwODgyfDA&ixlib=rb-4.1.0&q=80&w=1080',
+      cover: 'https://images.unsplash.com/photo-1624703307604-744ec383cbf4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVjdHJvbmljJTIwbXVzaWN8ZW58MXx8fHwxNzY0NDEwODgyfDA&ixlib=rb-4.1.0&q=80&w=1080',
+      listeners: '80.1M',
+      verified: true,
+      description: 'Justin Bieber là một ca sĩ kiêm sáng tác nhạc người Canada. Bieber được phát hiện bởi nhà quản lý tài năng Scooter Braun thông qua các video trên YouTube.'
+    }
+  ];
   // --- DỮ LIỆU GIẢ CHO PLAYLIST ĐƯỢC GIỮ NGUYÊN ---
   const featuredPlaylists: Playlist[] = [
     { id: '1', name: 'Top Hits 2024', cover: '...', songCount: 50, description: '...' },
@@ -181,6 +243,33 @@ export function HomePage({ onPlaySong }: HomePageProps) {
             ))}
           </div>
         )} */}
+      </div>
+
+      {/* Featured Artists Section */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h3>Nghệ sĩ nổi bật</h3>
+          <button className="text-sm text-blue-300 hover:text-white transition-colors">
+            Xem tất cả
+          </button>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+          {featuredArtists.map((artist) => (
+            <div
+              key={artist.id}
+              onClick={() => onArtistClick?.(artist)}
+              className="group flex flex-col items-center gap-3 cursor-pointer p-4 rounded-xl hover:bg-white/5 transition-all"
+            >
+              <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden shadow-2xl group-hover:scale-105 transition-transform duration-300">
+                <ImageWithFallback src={artist.avatar} alt={artist.name} className="w-full h-full object-cover" />
+              </div>
+              <div className="text-center">
+                <h4 className="font-bold text-white group-hover:text-cyan-400 transition-colors">{artist.name}</h4>
+                <p className="text-xs text-blue-300 mt-1">Nghệ sĩ</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Featured Playlists (GIỮ NGUYÊN) */}

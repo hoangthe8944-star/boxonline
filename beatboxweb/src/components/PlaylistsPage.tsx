@@ -14,12 +14,15 @@ import {
 import type { PlaylistDto } from '../../api/playlistApi';
 
 import type { Song } from '../../api/apiclient';
+import type { Playlist } from '../App';
 
 interface PlaylistsPageProps {
   currentUserId: string;
   isAdmin?: boolean;
   onPlaySong: (song: Song) => void;
   onCreateClick?: () => void;
+    onPlaylistClick?: (playlist: Playlist & { owner?: string; description?: string; updatedAt?: string }) => void;
+
 }
 
 export function PlaylistsPage({ currentUserId, isAdmin = false, onPlaySong, onCreateClick }: PlaylistsPageProps) {
@@ -141,7 +144,7 @@ export function PlaylistsPage({ currentUserId, isAdmin = false, onPlaySong, onCr
             <Plus className="w-4 h-4 mr-2" /> Tạo Playlist Mới
           </Button>
         </div>
-
+        {/* Toolbar */}
         <div className="bg-white/5 p-4 rounded-xl border border-white/10 flex flex-col md:flex-row gap-4 items-center">
           <div className="relative flex-1 w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-300" />
