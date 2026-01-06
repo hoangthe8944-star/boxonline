@@ -24,6 +24,7 @@ import type { Song } from '../api/apiclient';
 import './index.css';
 import { Menu } from 'lucide-react';
 import { ArtistPage, type Artist } from './components/ArtistPage';
+import { PremiumModal } from './components/PremiumModal';
 
 // Định nghĩa Type cho các trang để đồng bộ với Sidebar
 export type PageType = 'home' | 'library' | 'playlists' | 'search' | 'nowplaying' | 'profile' | 'create-playlist' | 'liked-songs' | 'recently-played' | 'podcast' | 'playlist-detail' | 'artist-detail';
@@ -47,6 +48,7 @@ export default function App() {
   const [token, setToken] = useState<string | null>(sessionStorage.getItem("accessToken"));
   const [authView, setAuthView] = useState<'login' | 'register'>('login');
   const [selectedArtist, setSelectedArtist] = useState<Artist | null>(null);
+  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
 
   // State lưu playlist đang xem chi tiết
   const [selectedPlaylist, setSelectedPlaylist] = useState<any>(null);
@@ -124,6 +126,10 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-blue-700 via-cyan-600 to-cyan-400 text-white overflow-hidden">
+      <PremiumModal
+        isOpen={isPremiumModalOpen}
+        onClose={() => setIsPremiumModalOpen(false)}
+      />
       {/* Mobile Menu Button */}
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -150,8 +156,11 @@ export default function App() {
           setCurrentPage('profile');
           setIsSidebarOpen(false);
         }}
+        onUpgradeClick={() => {
+          setIsPremiumModalOpen(true);
+          setIsSidebarOpen(false);
+        }}
       />
-
       {/* Nội dung chính */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header
@@ -161,7 +170,10 @@ export default function App() {
         />
 
         <main className="flex-1 overflow-y-auto pb-32">
-          {currentPage === 'home' && <HomePage onPlaySong={handlePlaySong} />}
+          {currentPage === 'home' && <HomePage onPlaySong={handlePlaySong} onArtistClick={(artist) => {
+            setSelectedArtist(artist);
+            setCurrentPage('artist-detail');
+          }} />}
           {currentPage === 'library' && <LibraryPage onPlaySong={handlePlaySong} />}
           {currentPage === 'search' && <SearchPage searchQuery={searchQuery} onPlaySong={handlePlaySong} />}
 
@@ -170,7 +182,10 @@ export default function App() {
               currentUserId={currentUserId}
               onPlaySong={handlePlaySong}
               onCreateClick={() => setCurrentPage('create-playlist')}
-              onPlaylistClick={handleOpenPlaylist}
+              onPlaylistClick={(playlist) => {
+                setSelectedPlaylist(playlist);
+                setCurrentPage('playlist-detail');
+              }}
             />
           )}
 
@@ -184,7 +199,11 @@ export default function App() {
 
           {currentPage === 'profile' && <ProfilePage onLogout={handleLogout} />}
           {currentPage === 'liked-songs' && <LikedSongsPage onPlaySong={handlePlaySong} />}
-          {currentPage === 'podcast' && <PodcastPage />}
+          {currentPage === 'podcast' && (
+            <PodcastPage
+              onStartLive={() => alert("Chức năng Live Stream đang được phát triển!")}
+            />
+          )}
           {currentPage === 'recently-played' && <RecentlyPlayedPage onPlaySong={handlePlaySong} />}
 
           {currentPage === 'nowplaying' && (
@@ -216,6 +235,7 @@ export default function App() {
               isAdmin={isAdmin}
               onBack={() => setCurrentPage('playlists')}
               onCreated={() => setCurrentPage('playlists')}
+
             />
           )}
         </main>
