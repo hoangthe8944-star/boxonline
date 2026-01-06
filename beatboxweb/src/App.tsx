@@ -23,9 +23,10 @@ import { logout } from '../api/authapi';
 import type { Song } from '../api/apiclient';
 import './index.css';
 import { Menu } from 'lucide-react';
+import { ArtistPage, type Artist } from './components/ArtistPage';
 
 // Định nghĩa Type cho các trang để đồng bộ với Sidebar
-export type PageType = 'home' | 'library' | 'playlists' | 'search' | 'nowplaying' | 'profile' | 'create-playlist' | 'liked-songs' | 'recently-played' | 'podcast' | 'playlist-detail';
+export type PageType = 'home' | 'library' | 'playlists' | 'search' | 'nowplaying' | 'profile' | 'create-playlist' | 'liked-songs' | 'recently-played' | 'podcast' | 'playlist-detail' | 'artist-detail';
 
 export interface Playlist {
   id: string;
@@ -45,7 +46,8 @@ export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [token, setToken] = useState<string | null>(sessionStorage.getItem("accessToken"));
   const [authView, setAuthView] = useState<'login' | 'register'>('login');
-  
+  const [selectedArtist, setSelectedArtist] = useState<Artist | null>(null);
+
   // State lưu playlist đang xem chi tiết
   const [selectedPlaylist, setSelectedPlaylist] = useState<any>(null);
 
@@ -162,12 +164,12 @@ export default function App() {
           {currentPage === 'home' && <HomePage onPlaySong={handlePlaySong} />}
           {currentPage === 'library' && <LibraryPage onPlaySong={handlePlaySong} />}
           {currentPage === 'search' && <SearchPage searchQuery={searchQuery} onPlaySong={handlePlaySong} />}
-          
+
           {currentPage === 'playlists' && (
-            <PlaylistsPage 
+            <PlaylistsPage
               currentUserId={currentUserId}
-              onPlaySong={handlePlaySong} 
-              onCreateClick={() => setCurrentPage('create-playlist')} 
+              onPlaySong={handlePlaySong}
+              onCreateClick={() => setCurrentPage('create-playlist')}
               onPlaylistClick={handleOpenPlaylist}
             />
           )}
@@ -184,23 +186,36 @@ export default function App() {
           {currentPage === 'liked-songs' && <LikedSongsPage onPlaySong={handlePlaySong} />}
           {currentPage === 'podcast' && <PodcastPage />}
           {currentPage === 'recently-played' && <RecentlyPlayedPage onPlaySong={handlePlaySong} />}
-          
+
           {currentPage === 'nowplaying' && (
-            <NowPlayingPage 
-              currentSong={currentSong} 
-              isPlaying={isPlaying} 
-              onTogglePlay={() => setIsPlaying(!isPlaying)} 
-              onPlaySong={handlePlaySong} 
-              currentTime={currentTime} 
+            <NowPlayingPage
+              currentSong={currentSong}
+              isPlaying={isPlaying}
+              onTogglePlay={() => setIsPlaying(!isPlaying)}
+              onPlaySong={handlePlaySong}
+              currentTime={currentTime}
             />
           )}
-
+          {currentPage === 'playlist-detail' && selectedPlaylist && (
+            <PlaylistDetailPage
+              playlist={selectedPlaylist}
+              onBack={() => setCurrentPage('playlists')}
+              onPlaySong={handlePlaySong}
+            />
+          )}
+          {currentPage === 'artist-detail' && selectedArtist && (
+            <ArtistPage
+              artist={selectedArtist}
+              onBack={() => setCurrentPage('home')}
+              onPlaySong={handlePlaySong}
+            />
+          )}
           {currentPage === 'create-playlist' && (
-            <CreatePlaylistPage 
+            <CreatePlaylistPage
               currentUserId={currentUserId}
               isAdmin={isAdmin}
-              onBack={() => setCurrentPage('playlists')} 
-              onCreated={() => setCurrentPage('playlists')} 
+              onBack={() => setCurrentPage('playlists')}
+              onCreated={() => setCurrentPage('playlists')}
             />
           )}
         </main>
