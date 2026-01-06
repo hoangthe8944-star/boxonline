@@ -136,7 +136,7 @@ export function NowPlayingPage({
 
       {/* ===== BACKGROUND LAYER (KHÔNG relative) ===== */}
       <div
-        className="w-72 h-72 mb-10 bg-blur-cover"
+        className="bg-blur-cover"
         style={{ backgroundImage: `url(${currentSong.coverUrl})` }}
       />
       <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/60 via-blue-950/70 to-black" />
