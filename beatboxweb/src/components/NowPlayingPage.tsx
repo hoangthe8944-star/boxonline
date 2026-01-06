@@ -215,55 +215,52 @@ export function NowPlayingPage({
             </div>
           </div>
         </div>
-        <div className="fixed lg:static bottom-0 left-0 right-0 lg:w-96 z-20">
-          <div className="absolute inset-0 backdrop-blur-[70px] bg-black/30" />
-          {/* QUEUE */}
-          <div
-            className={`fixed lg:static bottom-0 left-0 right-0 lg:w-96 bg-black/40 backdrop-blur-2xl transition-transform duration-500 z-20 ${queueOpen ? 'translate-y-0' : 'translate-y-full lg:translate-y-0'
-              }`}
-          >
-            <div className="p-6 border-b border-white/10 flex justify-between">
-              <h3 className="font-bold">Tiếp theo</h3>
-              <button
-                className="lg:hidden"
-                onClick={() => setQueueOpen(false)}
-              >
-                <ChevronDown />
-              </button>
-            </div>
-
-            <div className="p-4 space-y-3 overflow-y-auto max-h-[60vh]">
-              {upNext.map((s, i) => (
-                <button
-                  key={s.id}
-                  onClick={() => onPlaySong(s, upNext)}
-                  className="w-full flex gap-4 p-3 rounded-3xl hover:bg-white/10"
-                >
-                  <span className="text-white/20 text-xs">{i + 1}</span>
-                  <ImageWithFallback
-                    src={s.coverUrl}
-                    className="w-14 h-14 rounded-2xl"
-                  />
-                  <div className="text-left">
-                    <p className="font-bold truncate">{s.title}</p>
-                    <p className="text-xs text-white/40 truncate">
-                      {s.artistName}
-                    </p>
-                  </div>
-                </button>
-              ))}
-            </div>
+        {/* QUEUE */}
+        <div
+          className={`fixed lg:static bottom-0 left-0 right-0 lg:w-96 bg-black/40 backdrop-blur-2xl transition-transform duration-500 z-20 ${queueOpen ? 'translate-y-0' : 'translate-y-full lg:translate-y-0'
+            }`}
+        >
+          <div className="p-6 border-b border-white/10 flex justify-between">
+            <h3 className="font-bold">Tiếp theo</h3>
+            <button
+              className="lg:hidden"
+              onClick={() => setQueueOpen(false)}
+            >
+              <ChevronDown />
+            </button>
           </div>
 
-          {!queueOpen && (
-            <button
-              onClick={() => setQueueOpen(true)}
-              className="lg:hidden fixed bottom-28 right-8 p-5 bg-white text-black rounded-full shadow-xl z-30"
-            >
-              <Equal />
-            </button>
-          )}
+          <div className="p-4 space-y-3 overflow-y-auto max-h-[60vh]">
+            {upNext.map((s, i) => (
+              <button
+                key={s.id}
+                onClick={() => onPlaySong(s, upNext)}
+                className="w-full flex gap-4 p-3 rounded-3xl hover:bg-white/10"
+              >
+                <span className="text-white/20 text-xs">{i + 1}</span>
+                <ImageWithFallback
+                  src={s.coverUrl}
+                  className="w-14 h-14 rounded-2xl"
+                />
+                <div className="text-left">
+                  <p className="font-bold truncate">{s.title}</p>
+                  <p className="text-xs text-white/40 truncate">
+                    {s.artistName}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
+
+        {!queueOpen && (
+          <button
+            onClick={() => setQueueOpen(true)}
+            className="lg:hidden fixed bottom-28 right-8 p-5 bg-white text-black rounded-full shadow-xl z-30"
+          >
+            <Equal />
+          </button>
+        )}
       </div>
     </div>
   );
