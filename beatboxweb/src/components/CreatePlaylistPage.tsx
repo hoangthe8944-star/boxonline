@@ -1,4 +1,4 @@
-import { Camera, Music, Plus, RefreshCw, ChevronLeft } from 'lucide-react';
+import { Plus, RefreshCw, Music, Camera } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -8,16 +8,14 @@ import { Switch } from './ui/switch';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { toast } from "sonner";
 import axios from "axios";
-
-// ✅ IMPORT API
 import type { Song } from '../../api/apiclient';
-import { getAllPublicSongs } from '../../api/apiclient';
+import { getRecentlyPlayedSongs } from '../../api/apiclient';
 
 interface CreatePlaylistPageProps {
   onBack: () => void;
-  currentUserId: string; 
+  currentUserId: string;
   isAdmin?: boolean;
-  onCreated?: (playlist: any) => void; 
+  onCreated?: (playlist: any) => void;
 }
 
 export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onCreated }: CreatePlaylistPageProps) {
@@ -29,28 +27,36 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
   const [suggestedSongs, setSuggestedSongs] = useState<Song[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   // ---------------------
-  // Lấy danh sách bài hát thật từ backend
+  // Fetch danh sách bài hát gợi ý
   // ---------------------
   useEffect(() => {
-    const fetchSongs = async () => {
+    const fetchSuggestedSongs = async () => {
+      console.log("==> Fetching suggested songs...");
       try {
-        console.log("Fetching all public songs...");
-        const res = await getAllPublicSongs();
-        console.log("All public songs:", res.data);
-
-        // Chỉ lấy 5 bài đầu tiên
-        setSuggestedSongs(res.data.slice(0, 5));
-      } catch (err: any) {
+        const res = await axios.get<Song[]>('https://backend-jfn4.onrender.com/api/songs/all', {
+          headers: { "ngrok-skip-browser-warning": "true" }
+        });
+        console.log("==> All songs fetched:", res.data.length);
+        setSuggestedSongs(res.data.slice(0,5));
+      } catch(err:any) {
         console.error("Lỗi khi fetch tất cả bài hát:", err);
-        setError("Không thể tải danh sách bài hát.");
-        setSuggestedSongs([]);
-      }
-    };
 
-    fetchSongs();
+        // Fallback: lấy recent songs nếu có
+        try {
+          const recentRes = await getRecentlyPlayedSongs();
+          console.log("==> Fallback recent songs:", recentRes.data.length);
+          setSuggestedSongs(recentRes.data.slice(0,5));
+        } catch(recentErr:any) {
+          console.error("Lỗi khi fetch recent songs:", recentErr);
+          // fallback cứng nếu recent cũng lỗi
+          setSuggestedSongs([]);
+        }
+      }
+    }
+
+    fetchSuggestedSongs();
   }, []);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -62,26 +68,18 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
     }
   };
 
-  const handleRefreshSuggestions = async () => {
+  const handleRefreshSuggestions = () => {
     setIsRefreshing(true);
-    try {
-      console.log("Refreshing song suggestions...");
-      const res = await getAllPublicSongs();
-      const shuffled = [...res.data].sort(() => 0.5 - Math.random());
-      setSuggestedSongs(shuffled.slice(0, 5));
-      console.log("New suggested songs:", shuffled.slice(0, 5));
-      toast.success("Đã làm mới danh sách gợi ý");
-    } catch (err) {
-      console.error("Lỗi khi refresh gợi ý:", err);
-      toast.error("Không thể làm mới danh sách.");
-    } finally {
+    setTimeout(() => {
+      const shuffled = [...suggestedSongs].sort(() => 0.5 - Math.random());
+      setSuggestedSongs(shuffled.slice(0,5));
       setIsRefreshing(false);
-    }
+      toast.success("Đã làm mới danh sách gợi ý");
+    }, 500);
   };
 
   const handleAddSong = (song: Song) => {
     setAddedSongs(prev => new Set(prev).add(song.id));
-    console.log(`Đã thêm bài: "${song.title}"`);
     toast.success(`Đã thêm "${song.title}" vào playlist mới`);
   };
 
@@ -90,6 +88,7 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
     if (!name.trim()) return;
 
     setLoading(true);
+
     try {
       const payload = {
         name,
@@ -99,8 +98,6 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
         tracks: Array.from(addedSongs),
         coverImage,
       };
-
-      console.log("Sending playlist creation payload:", payload);
 
       const res = await axios.post(
         "https://backend-jfn4.onrender.com/api/playlists",
@@ -114,7 +111,6 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
         }
       );
 
-      console.log("Playlist created:", res.data);
       toast.success(`Playlist "${res.data.name}" đã được tạo!`);
       if (onCreated) onCreated(res.data);
 
@@ -124,7 +120,7 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
       setCoverImage(null);
       setAddedSongs(new Set());
     } catch (err: any) {
-      console.error("Lỗi khi tạo playlist:", err);
+      console.error(err);
       toast.error("Tạo playlist thất bại, thử lại!");
     } finally {
       setLoading(false);
@@ -133,21 +129,14 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
 
   return (
     <div className="p-4 lg:p-8 max-w-4xl mx-auto animate-in fade-in duration-500">
-      <Button 
-        variant="ghost" 
-        onClick={onBack}
-        className="mb-6 text-white/70 hover:text-white hover:bg-white/10 -ml-2"
-      >
-        <ChevronLeft className="w-5 h-5 mr-2" />
+      <Button variant="ghost" onClick={onBack} className="mb-6 text-white/70 hover:text-white hover:bg-white/10 -ml-2">
         Quay lại
       </Button>
 
       <h1 className="text-3xl font-bold mb-8">Tạo Playlist Mới</h1>
 
-      {error && <p className="text-red-400 bg-red-900/50 p-3 rounded-lg">{error}</p>}
-
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Cover Image */}
+        {/* Cover Image Section */}
         <div className="lg:col-span-4 flex flex-col items-center space-y-4">
           <div className="relative group w-full aspect-square max-w-[300px] bg-white/5 rounded-xl border-2 border-dashed border-white/20 flex flex-col items-center justify-center overflow-hidden transition-all hover:border-white/40 hover:bg-white/10">
             {coverImage ? (
@@ -163,12 +152,10 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
               <Camera className="w-8 h-8 text-white" />
             </div>
           </div>
-          <p className="text-xs text-white/40 text-center">
-            Tối thiểu 300x300px. JPG hoặc PNG.
-          </p>
+          <p className="text-xs text-white/40 text-center">Tối thiểu 300x300px. JPG hoặc PNG.</p>
         </div>
 
-        {/* Form Fields */}
+        {/* Form Fields Section */}
         <div className="lg:col-span-8 space-y-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
@@ -198,7 +185,6 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <Label className="text-base text-white font-medium flex items-center gap-2">
-                    {isPublic ? <span>🌐</span> : <span>🔒</span>}
                     {isPublic ? 'Công khai' : 'Riêng tư'}
                   </Label>
                   <p className="text-sm text-white/50">
