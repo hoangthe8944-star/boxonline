@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Camera, Music, Lock, Globe, ChevronLeft, Plus, RefreshCw } from 'lucide-react';
+import { Camera, Music, Plus, RefreshCw, ChevronLeft } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -9,26 +9,17 @@ import { ImageWithFallback } from './figma/ImageWithFallback';
 import { toast } from "sonner";
 import axios from "axios";
 
-// ---------------------
-// TYPE DEFINITIONS
-// ---------------------
-interface Song {
-  id: string;
-  title: string;
-  artistName: string;
-  coverUrl: string;
-}
+// ✅ IMPORT API
+import type { Song } from '../../api/apiclient';
+import { getAllPublicSongs } from '../../api/apiclient';
 
 interface CreatePlaylistPageProps {
   onBack: () => void;
-  currentUserId: string; // cần để gửi header
+  currentUserId: string; 
   isAdmin?: boolean;
-  onCreated?: (playlist: any) => void; // callback sau khi tạo xong
+  onCreated?: (playlist: any) => void; 
 }
 
-// ---------------------
-// COMPONENT
-// ---------------------
 export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onCreated }: CreatePlaylistPageProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -38,34 +29,30 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
   const [suggestedSongs, setSuggestedSongs] = useState<Song[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // ---------------------
-  // CALL API LẤY TẤT CẢ BÀI HÁT
+  // Lấy danh sách bài hát thật từ backend
   // ---------------------
   useEffect(() => {
     const fetchSongs = async () => {
       try {
-        const res = await axios.get<Song[]>("https://backend-jfn4.onrender.com/api/songs/all", {
-          headers: {
-            "ngrok-skip-browser-warning": "true"
-          }
-        });
-        console.log("All songs fetched:", res.data);
+        console.log("Fetching all public songs...");
+        const res = await getAllPublicSongs();
+        console.log("All public songs:", res.data);
 
-        // Chỉ hiển thị 5 bài
+        // Chỉ lấy 5 bài đầu tiên
         setSuggestedSongs(res.data.slice(0, 5));
       } catch (err: any) {
-        console.error("Lỗi khi fetch tất cả bài hát:", err.response || err);
-        toast.error("Không thể tải danh sách bài hát");
+        console.error("Lỗi khi fetch tất cả bài hát:", err);
+        setError("Không thể tải danh sách bài hát.");
+        setSuggestedSongs([]);
       }
     };
 
     fetchSongs();
   }, []);
 
-  // ---------------------
-  // HANDLE FUNCTIONS
-  // ---------------------
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -75,18 +62,26 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
     }
   };
 
-  const handleRefreshSuggestions = () => {
+  const handleRefreshSuggestions = async () => {
     setIsRefreshing(true);
-    setTimeout(() => {
-      const shuffled = [...suggestedSongs].sort(() => 0.5 - Math.random());
+    try {
+      console.log("Refreshing song suggestions...");
+      const res = await getAllPublicSongs();
+      const shuffled = [...res.data].sort(() => 0.5 - Math.random());
       setSuggestedSongs(shuffled.slice(0, 5));
-      setIsRefreshing(false);
+      console.log("New suggested songs:", shuffled.slice(0, 5));
       toast.success("Đã làm mới danh sách gợi ý");
-    }, 500);
+    } catch (err) {
+      console.error("Lỗi khi refresh gợi ý:", err);
+      toast.error("Không thể làm mới danh sách.");
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const handleAddSong = (song: Song) => {
     setAddedSongs(prev => new Set(prev).add(song.id));
+    console.log(`Đã thêm bài: "${song.title}"`);
     toast.success(`Đã thêm "${song.title}" vào playlist mới`);
   };
 
@@ -95,60 +90,47 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
     if (!name.trim()) return;
 
     setLoading(true);
-
     try {
-      // ---------------------
-      // Payload chuẩn backend
-      // ---------------------
-      const payload: any = {
+      const payload = {
         name,
         description,
         type: "user",
         isPublic,
+        tracks: Array.from(addedSongs),
+        coverImage,
       };
 
-      // Chỉ gửi tracks nếu có bài hát
-      if (addedSongs.size > 0) {
-        // Nếu backend cần object {id}, map như sau
-        payload.tracks = Array.from(addedSongs).map(id => ({ id }));
-      }
+      console.log("Sending playlist creation payload:", payload);
 
-      // Chỉ gửi coverImage nếu có
-      if (coverImage) payload.coverImage = coverImage;
+      const res = await axios.post(
+        "https://backend-jfn4.onrender.com/api/playlists",
+        payload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            currentUserId,
+            isAdmin,
+          },
+        }
+      );
 
-      console.log("Payload gửi lên backend:", payload);
-
-      const res = await axios.post("https://backend-jfn4.onrender.com/api/playlists", payload, {
-        headers: {
-          "Content-Type": "application/json",
-          currentUserId,
-          isAdmin,
-        },
-      });
-
-      console.log("Response từ backend:", res.data);
+      console.log("Playlist created:", res.data);
       toast.success(`Playlist "${res.data.name}" đã được tạo!`);
-
       if (onCreated) onCreated(res.data);
 
-      // Reset form
       setName('');
       setDescription('');
       setIsPublic(true);
       setCoverImage(null);
       setAddedSongs(new Set());
-
     } catch (err: any) {
-      console.error("Lỗi khi tạo playlist:", err.response || err);
-      toast.error("Tạo playlist thất bại, xem console để debug!");
+      console.error("Lỗi khi tạo playlist:", err);
+      toast.error("Tạo playlist thất bại, thử lại!");
     } finally {
       setLoading(false);
     }
   };
 
-  // ---------------------
-  // RENDER
-  // ---------------------
   return (
     <div className="p-4 lg:p-8 max-w-4xl mx-auto animate-in fade-in duration-500">
       <Button 
@@ -162,8 +144,10 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
 
       <h1 className="text-3xl font-bold mb-8">Tạo Playlist Mới</h1>
 
+      {error && <p className="text-red-400 bg-red-900/50 p-3 rounded-lg">{error}</p>}
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Cover Image Section */}
+        {/* Cover Image */}
         <div className="lg:col-span-4 flex flex-col items-center space-y-4">
           <div className="relative group w-full aspect-square max-w-[300px] bg-white/5 rounded-xl border-2 border-dashed border-white/20 flex flex-col items-center justify-center overflow-hidden transition-all hover:border-white/40 hover:bg-white/10">
             {coverImage ? (
@@ -184,7 +168,7 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
           </p>
         </div>
 
-        {/* Form Fields Section */}
+        {/* Form Fields */}
         <div className="lg:col-span-8 space-y-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
@@ -214,7 +198,7 @@ export function CreatePlaylistPage({ onBack, currentUserId, isAdmin = false, onC
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <Label className="text-base text-white font-medium flex items-center gap-2">
-                    {isPublic ? <Globe className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                    {isPublic ? <span>🌐</span> : <span>🔒</span>}
                     {isPublic ? 'Công khai' : 'Riêng tư'}
                   </Label>
                   <p className="text-sm text-white/50">
