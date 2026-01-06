@@ -84,6 +84,8 @@
     --color-red-400: oklch(.704 .191 22.216);
     --color-red-500: oklch(.637 .237 25.331);
     --color-red-600: oklch(.577 .245 27.325);
+    --color-red-700: oklch(.505 .213 27.518);
+    --color-red-900: oklch(.396 .141 25.723);
     --color-orange-500: oklch(.705 .213 47.604);
     --color-orange-600: oklch(.646 .222 41.116);
     --color-orange-800: oklch(.47 .157 37.304);
@@ -141,6 +143,8 @@
     --text-2xl--line-height: calc(2 / 1.5);
     --text-3xl: 1.875rem;
     --text-3xl--line-height: calc(2.25 / 1.875);
+    --text-4xl: 2.25rem;
+    --text-4xl--line-height: calc(2.5 / 2.25);
     --text-5xl: 3rem;
     --text-5xl--line-height: 1;
     --text-7xl: 4.5rem;
@@ -158,6 +162,7 @@
     --drop-shadow-lg: 0 4px 4px #00000026;
     --ease-in-out: cubic-bezier(.4, 0, .2, 1);
     --animate-spin: spin 1s linear infinite;
+    --animate-ping: ping 1s cubic-bezier(0, 0, .2, 1) infinite;
     --blur-sm: 8px;
     --blur-lg: 16px;
     --blur-xl: 24px;
@@ -169,28 +174,8 @@
     --default-mono-font-family: var(--font-mono);
     --default-mono-font-feature-settings: var(--font-mono--font-feature-settings);
     --default-mono-font-variation-settings: var(--font-mono--font-variation-settings);
-    --animate-ping: ping 1s cubic-bezier(0, 0, .2, 1) infinite;
-
   }
 }
-
-/* @layer utilities {
-  .backdrop-blur-2xl {
-    --tw-backdrop-blur: blur(40px);
-    backdrop-filter: var(--tw-backdrop-blur);
-  }
-
-  .backdrop-blur-3xl {
-    --tw-backdrop-blur: blur(60px);
-    backdrop-filter: var(--tw-backdrop-blur);
-  }
-
-  .backdrop-blur-4xl {
-    --tw-backdrop-blur: blur(80px);
-    backdrop-filter: var(--tw-backdrop-blur);
-  }
-} */
-
 
 @layer base {
 
@@ -391,7 +376,6 @@
     pointer-events: none;
     /* 👈 không ảnh hưởng click */
   }
-
 
   @supports (color: color-mix(in lab, red, red)) {
     ::placeholder {
@@ -611,6 +595,10 @@
     top: calc(var(--spacing) * 2);
   }
 
+  .top-3 {
+    top: calc(var(--spacing) * 3);
+  }
+
   .top-4 {
     top: calc(var(--spacing) * 4);
   }
@@ -625,6 +613,10 @@
 
   .right-2 {
     right: calc(var(--spacing) * 2);
+  }
+
+  .right-3 {
+    right: calc(var(--spacing) * 3);
   }
 
   .right-4 {
@@ -1076,6 +1068,11 @@
     translate: var(--tw-translate-x) var(--tw-translate-y);
   }
 
+  .translate-y-4 {
+    --tw-translate-y: calc(var(--spacing) * 4);
+    translate: var(--tw-translate-x) var(--tw-translate-y);
+  }
+
   .translate-y-\[-50\%\] {
     --tw-translate-y: -50%;
     translate: var(--tw-translate-x) var(--tw-translate-y);
@@ -1092,6 +1089,10 @@
 
   .animate-in {
     animation: enter var(--tw-duration, .15s) var(--tw-ease, ease);
+  }
+
+  .animate-ping {
+    animation: var(--animate-ping);
   }
 
   .animate-spin {
@@ -1228,6 +1229,12 @@
     margin-block-end: calc(calc(var(--spacing) * 6) * calc(1 - var(--tw-space-y-reverse)));
   }
 
+  :where(.space-y-8 > :not(:last-child)) {
+    --tw-space-y-reverse: 0;
+    margin-block-start: calc(calc(var(--spacing) * 8) * var(--tw-space-y-reverse));
+    margin-block-end: calc(calc(var(--spacing) * 8) * calc(1 - var(--tw-space-y-reverse)));
+  }
+
   :where(.divide-y > :not(:last-child)) {
     --tw-divide-y-reverse: 0;
     border-bottom-style: var(--tw-border-style);
@@ -1254,6 +1261,10 @@
 
   .overflow-hidden {
     overflow: hidden;
+  }
+
+  .overflow-x-auto {
+    overflow-x: auto;
   }
 
   .overflow-x-hidden {
@@ -1340,10 +1351,6 @@
     border-color: color-mix(in srgb, oklch(.623 .214 259.815) 30%, transparent);
   }
 
-  .animate-ping {
-    animation: var(--animate-ping);
-  }
-
   @supports (color: color-mix(in lab, red, red)) {
     .border-blue-500\/30 {
       border-color: color-mix(in oklab, var(--color-blue-500) 30%, transparent);
@@ -1416,6 +1423,16 @@
 
   .border-input {
     border-color: var(--input);
+  }
+
+  .border-red-500\/20 {
+    border-color: color-mix(in srgb, oklch(.637 .237 25.331) 20%, transparent);
+  }
+
+  @supports (color: color-mix(in lab, red, red)) {
+    .border-red-500\/20 {
+      border-color: color-mix(in oklab, var(--color-red-500) 20%, transparent);
+    }
   }
 
   .border-transparent {
@@ -1670,12 +1687,28 @@
     background-color: var(--primary);
   }
 
+  .bg-red-400 {
+    background-color: var(--color-red-400);
+  }
+
+  .bg-red-500 {
+    background-color: var(--color-red-500);
+  }
+
+  .bg-red-600 {
+    background-color: var(--color-red-600);
+  }
+
   .bg-secondary {
     background-color: var(--secondary);
   }
 
   .bg-transparent {
     background-color: #0000;
+  }
+
+  .bg-white {
+    background-color: var(--color-white);
   }
 
   .bg-white\/5 {
@@ -1938,6 +1971,17 @@
     --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
   }
 
+  .from-red-900\/40 {
+    --tw-gradient-from: color-mix(in srgb, oklch(.396 .141 25.723) 40%, transparent);
+    --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
+  }
+
+  @supports (color: color-mix(in lab, red, red)) {
+    .from-red-900\/40 {
+      --tw-gradient-from: color-mix(in oklab, var(--color-red-900) 40%, transparent);
+    }
+  }
+
   .from-white {
     --tw-gradient-from: var(--color-white);
     --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
@@ -1958,6 +2002,17 @@
     --tw-gradient-via: transparent;
     --tw-gradient-via-stops: var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-via) var(--tw-gradient-via-position), var(--tw-gradient-to) var(--tw-gradient-to-position);
     --tw-gradient-stops: var(--tw-gradient-via-stops);
+  }
+
+  .to-black\/40 {
+    --tw-gradient-to: #0006;
+    --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
+  }
+
+  @supports (color: color-mix(in lab, red, red)) {
+    .to-black\/40 {
+      --tw-gradient-to: color-mix(in oklab, var(--color-black) 40%, transparent);
+    }
   }
 
   .to-blue-200 {
@@ -2170,6 +2225,10 @@
     background-clip: text;
   }
 
+  .fill-current {
+    fill: currentColor;
+  }
+
   .object-cover {
     object-fit: cover;
   }
@@ -2224,6 +2283,10 @@
 
   .px-8 {
     padding-inline: calc(var(--spacing) * 8);
+  }
+
+  .py-0\.5 {
+    padding-block: calc(var(--spacing) * .5);
   }
 
   .py-1 {
@@ -2282,6 +2345,10 @@
     padding-right: calc(var(--spacing) * 8);
   }
 
+  .pb-2 {
+    padding-bottom: calc(var(--spacing) * 2);
+  }
+
   .pb-8 {
     padding-bottom: calc(var(--spacing) * 8);
   }
@@ -2336,6 +2403,11 @@
     line-height: var(--tw-leading, var(--text-3xl--line-height));
   }
 
+  .text-4xl {
+    font-size: var(--text-4xl);
+    line-height: var(--tw-leading, var(--text-4xl--line-height));
+  }
+
   .text-base {
     font-size: var(--text-base);
     line-height: var(--tw-leading, var(--text-base--line-height));
@@ -2359,6 +2431,10 @@
   .text-xs {
     font-size: var(--text-xs);
     line-height: var(--tw-leading, var(--text-xs--line-height));
+  }
+
+  .text-\[10px\] {
+    font-size: 10px;
   }
 
   .leading-none {
@@ -2414,6 +2490,10 @@
 
   .text-blue-300 {
     color: var(--color-blue-300);
+  }
+
+  .text-blue-900 {
+    color: var(--color-blue-900);
   }
 
   .text-cyan-50 {
@@ -2538,6 +2618,10 @@
 
   .opacity-70 {
     opacity: .7;
+  }
+
+  .opacity-75 {
+    opacity: .75;
   }
 
   .opacity-90 {
@@ -2786,11 +2870,32 @@
   }
 
   @media (hover: hover) {
+    .group-hover\:scale-105:is(:where(.group):hover *) {
+      --tw-scale-x: 105%;
+      --tw-scale-y: 105%;
+      --tw-scale-z: 105%;
+      scale: var(--tw-scale-x) var(--tw-scale-y);
+    }
+  }
+
+  @media (hover: hover) {
     .group-hover\:scale-110:is(:where(.group):hover *) {
       --tw-scale-x: 110%;
       --tw-scale-y: 110%;
       --tw-scale-z: 110%;
       scale: var(--tw-scale-x) var(--tw-scale-y);
+    }
+  }
+
+  @media (hover: hover) {
+    .group-hover\:bg-black\/40:is(:where(.group):hover *) {
+      background-color: #0006;
+    }
+
+    @supports (color: color-mix(in lab, red, red)) {
+      .group-hover\:bg-black\/40:is(:where(.group):hover *) {
+        background-color: color-mix(in oklab, var(--color-black) 40%, transparent);
+      }
     }
   }
 
@@ -2803,6 +2908,12 @@
   @media (hover: hover) {
     .group-hover\:text-cyan-300:is(:where(.group):hover *) {
       color: var(--color-cyan-300);
+    }
+  }
+
+  @media (hover: hover) {
+    .group-hover\:text-cyan-400:is(:where(.group):hover *) {
+      color: var(--color-cyan-400);
     }
   }
 
@@ -2936,6 +3047,13 @@
   }
 
   @media (hover: hover) {
+    .hover\:-translate-y-1:hover {
+      --tw-translate-y: calc(var(--spacing) * -1);
+      translate: var(--tw-translate-x) var(--tw-translate-y);
+    }
+  }
+
+  @media (hover: hover) {
     .hover\:scale-105:hover {
       --tw-scale-x: 105%;
       --tw-scale-y: 105%;
@@ -2952,6 +3070,18 @@
     @supports (color: color-mix(in lab, red, red)) {
       .hover\:border-cyan-500\/40:hover {
         border-color: color-mix(in oklab, var(--color-cyan-500) 40%, transparent);
+      }
+    }
+  }
+
+  @media (hover: hover) {
+    .hover\:border-red-500\/40:hover {
+      border-color: color-mix(in srgb, oklch(.637 .237 25.331) 40%, transparent);
+    }
+
+    @supports (color: color-mix(in lab, red, red)) {
+      .hover\:border-red-500\/40:hover {
+        border-color: color-mix(in oklab, var(--color-red-500) 40%, transparent);
       }
     }
   }
@@ -3169,6 +3299,12 @@
       .hover\:bg-red-500\/20:hover {
         background-color: color-mix(in oklab, var(--color-red-500) 20%, transparent);
       }
+    }
+  }
+
+  @media (hover: hover) {
+    .hover\:bg-red-700:hover {
+      background-color: var(--color-red-700);
     }
   }
 
@@ -4910,6 +5046,15 @@ html {
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes ping {
+
+  75%,
+  100% {
+    opacity: 0;
+    transform: scale(2);
   }
 }
 
