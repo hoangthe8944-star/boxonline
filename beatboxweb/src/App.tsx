@@ -138,7 +138,7 @@ export default function App() {
             <HomePage
               onPlaySong={handlePlaySong}
               onArtistClick={(artist) => { setSelectedArtist(artist); setCurrentPage('artist-detail'); }}
-              onPlaylistClick={handleOpenPlaylist} 
+              onPlaylistClick={handleOpenPlaylist}
             />
           )}
 
@@ -151,8 +151,10 @@ export default function App() {
               currentUserId={currentUserId}
               onPlaySong={handlePlaySong}
               onCreateClick={() => setCurrentPage('create-playlist')}
-              onPlaylistClick={handleOpenPlaylist}
-            />
+              onPlaylistClick={(playlist) => {
+                setSelectedPlaylist(playlist);
+                setCurrentPage('playlist-detail');
+              }} />
           )}
           {/* TRANG CHI TIẾT PLAYLIST */}
           {currentPage === 'playlist-detail' && selectedPlaylist && (
