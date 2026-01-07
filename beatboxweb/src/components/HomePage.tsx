@@ -285,10 +285,7 @@ export function HomePage({ onPlaySong, onArtistClick, onPlaylistClick }: HomePag
           {featuredPlaylists.map((playlist) => (
             <div
               key={playlist.id}
-              onClick={() => {
-                console.log("Bấm vào playlist tại Home:", playlist.name);
-                onPlaylistClick?.(playlist);
-              }}
+              onClick={() => onPlaylistClick?.(playlist)}
               className="bg-gradient-to-b from-blue-900/30 to-transparent backdrop-blur rounded-lg p-3 sm:p-4 hover:bg-blue-800/40 transition-all cursor-pointer group"
             >
               <div className="relative mb-3 sm:mb-4">
@@ -309,7 +306,7 @@ export function HomePage({ onPlaySong, onArtistClick, onPlaylistClick }: HomePag
           ))}
         </div>
       </div>
-
+      
       {/* Recommended Songs */}
       <div>
         <div className="flex items-center justify-between mb-4">

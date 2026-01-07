@@ -57,6 +57,7 @@ export default function App() {
   const [currentTime, setCurrentTime] = useState(0);
   const [playQueue, setPlayQueue] = useState<Song[]>([]);
   const [currentQueueIndex, setCurrentQueueIndex] = useState<number>(0);
+  const [previousPage, setPreviousPage] = useState<'home' | 'playlists'>('home');
 
   const [currentHash, setCurrentHash] = useState(window.location.hash);
   useEffect(() => {
@@ -77,11 +78,6 @@ export default function App() {
   };
 
   // ✅ HÀM MỞ PLAYLIST (ĐÃ SỬA)
-  const handleOpenPlaylist = (playlist: any) => {
-    console.log("Mở playlist:", playlist.name);
-    setSelectedPlaylist(playlist);
-    setCurrentPage('playlist-detail');
-  };
 
   const handlePlaySong = (song: Song, contextPlaylist: Song[] = []) => {
     setCurrentSong(song);
@@ -137,11 +133,17 @@ export default function App() {
           {currentPage === 'home' && (
             <HomePage
               onPlaySong={handlePlaySong}
-              onArtistClick={(artist) => { setSelectedArtist(artist); setCurrentPage('artist-detail'); }}
-              onPlaylistClick={handleOpenPlaylist}
+              onArtistClick={(artist) => {
+                setSelectedArtist(artist);
+                setCurrentPage('artist-detail');
+              }}
+              onPlaylistClick={(playlist) => {
+                setSelectedPlaylist(playlist);
+                setPreviousPage('home');
+                setCurrentPage('playlist-detail');
+              }}
             />
           )}
-
           {/* TRANG TÌM KIẾM */}
           {currentPage === 'search' && <SearchPage searchQuery={searchQuery} onPlaySong={handlePlaySong} />}
 
