@@ -66,8 +66,9 @@ export default function App() {
     window.location.reload();
   };
 
+  // ✅ HÀM MỞ PLAYLIST (ĐÃ SỬA)
   const handleOpenPlaylist = (playlist: any) => {
-    console.log("App nhận lệnh mở playlist:", playlist.name);
+    console.log("Mở playlist:", playlist.name);
     setSelectedPlaylist(playlist);
     setCurrentPage('playlist-detail');
   };
@@ -87,7 +88,7 @@ export default function App() {
 
   if (!token) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-950 bg-[url('https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center bg-no-repeat bg-blend-overlay">
+      <div className="flex items-center justify-center min-h-screen bg-slate-950">
         <div className="w-full max-w-md p-4">
           {authView === 'login' ? (
             <LoginForm onLoginSuccess={handleAuthSuccess} onSwitchToRegister={() => setAuthView('register')} />
@@ -122,24 +123,28 @@ export default function App() {
         <Header searchQuery={searchQuery} onSearchChange={setSearchQuery} onSearch={() => setCurrentPage('search')} />
 
         <main className="flex-1 overflow-y-auto pb-32">
+          {/* TRANG CHỦ */}
           {currentPage === 'home' && (
             <HomePage 
               onPlaySong={handlePlaySong} 
               onArtistClick={(artist) => { setSelectedArtist(artist); setCurrentPage('artist-detail'); }} 
             />
           )}
-          {currentPage === 'library' && <LibraryPage onPlaySong={handlePlaySong} />}
+
+          {/* TRANG TÌM KIẾM */}
           {currentPage === 'search' && <SearchPage searchQuery={searchQuery} onPlaySong={handlePlaySong} />}
           
+          {/* TRANG DANH SÁCH PLAYLIST */}
           {currentPage === 'playlists' && (
             <PlaylistsPage
               currentUserId={currentUserId}
               onPlaySong={handlePlaySong}
               onCreateClick={() => setCurrentPage('create-playlist')}
-              onPlaylistClick={handleOpenPlaylist} // <-- TRUYỀN HÀM RÕ RÀNG
+              onPlaylistClick={handleOpenPlaylist} // <-- TRUYỀN HÀM TRỰC TIẾP
             />
           )}
 
+          {/* TRANG CHI TIẾT PLAYLIST */}
           {currentPage === 'playlist-detail' && selectedPlaylist && (
             <PlaylistDetailPage
               playlist={selectedPlaylist}
@@ -148,19 +153,18 @@ export default function App() {
             />
           )}
 
+          {/* CÁC TRANG KHÁC */}
           {currentPage === 'profile' && <ProfilePage onLogout={handleLogout} />}
+          {currentPage === 'library' && <LibraryPage onPlaySong={handlePlaySong} />}
           {currentPage === 'liked-songs' && <LikedSongsPage onPlaySong={handlePlaySong} />}
-          {currentPage === 'podcast' && <PodcastPage onStartLive={() => alert("Đang phát triển!")} />}
           {currentPage === 'recently-played' && <RecentlyPlayedPage onPlaySong={handlePlaySong} />}
-
+          {currentPage === 'podcast' && <PodcastPage onStartLive={() => alert("Đang phát triển!")} />}
           {currentPage === 'artist-detail' && selectedArtist && (
             <ArtistPage artist={selectedArtist} onBack={() => setCurrentPage('home')} onPlaySong={handlePlaySong} />
           )}
-
           {currentPage === 'create-playlist' && (
             <CreatePlaylistPage currentUserId={currentUserId} isAdmin={isAdmin} onBack={() => setCurrentPage('playlists')} onCreated={() => setCurrentPage('playlists')} />
           )}
-
           {currentPage === 'nowplaying' && (
             <NowPlayingPage currentSong={currentSong} isPlaying={isPlaying} onTogglePlay={() => setIsPlaying(!isPlaying)} onPlaySong={handlePlaySong} currentTime={currentTime} />
           )}
