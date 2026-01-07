@@ -95,12 +95,48 @@ export function HomePage({ onPlaySong, onArtistClick, onPlaylistClick }: HomePag
   ];
   // --- DỮ LIỆU GIẢ CHO PLAYLIST ĐƯỢC GIỮ NGUYÊN ---
   const featuredPlaylists: Playlist[] = [
-    { id: '1', name: 'Top Hits 2024', cover: '...', songCount: 50, description: '...' },
-    { id: '2', name: 'Chill Vibes', cover: '...', songCount: 35, description: '...' },
-    { id: '3', name: 'Rock Classics', cover: '...', songCount: 42, description: '...' },
-    { id: '4', name: 'Jazz Evening', cover: '...', songCount: 28, description: '...' },
-    { id: '5', name: 'Electronic Beats', cover: '...', songCount: 38, description: '...' },
-    { id: '6', name: 'Night Concerts', cover: '...', songCount: 45, description: '...' },
+    {
+      id: '1',
+      name: 'Top Hits 2024',
+      cover: 'https://images.unsplash.com/photo-1644855640845-ab57a047320e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtdXNpYyUyMGFsYnVtJTIwY292ZXJ8ZW58MXx8fHwxNzY0NDEwNDg0fDA&ixlib=rb-4.1.0&q=80&w=1080',
+      songCount: 50,
+      description: 'Những bài hát được nghe nhiều nhất năm 2024',
+    },
+    {
+      id: '2',
+      name: 'Chill Vibes',
+      cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwb3AlMjBtdXNpY3xlbnwxfHx8fDE3NjQ0MTc3Njh8MA&ixlib=rb-4.1.0&q=80&w=1080',
+      songCount: 35,
+      description: 'Thư giãn với những giai điệu êm dịu',
+    },
+    {
+      id: '3',
+      name: 'Rock Classics',
+      cover: 'https://images.unsplash.com/photo-1604514288114-3851479df2f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb2NrJTIwYmFuZHxlbnwxfHx8fDE3NjQ0MTU0MjR8MA&ixlib=rb-4.1.0&q=80&w=1080',
+      songCount: 42,
+      description: 'Những bản rock kinh điển của mọi thời đại',
+    },
+    {
+      id: '4',
+      name: 'Jazz Evening',
+      cover: 'https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxqYXp6JTIwbXVzaWN8ZW58MXx8fHwxNzY0Mzc2NTQ5fDA&ixlib=rb-4.1.0&q=80&w=1080',
+      songCount: 28,
+      description: 'Tận hưởng buổi tối với nhạc jazz',
+    },
+    {
+      id: '5',
+      name: 'Electronic Beats',
+      cover: 'https://images.unsplash.com/photo-1624703307604-744ec383cbf4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVjdHJvbmljJTIwbXVzaWN8ZW58MXx8fHwxNzY0NDEwODgyfDA&ixlib=rb-4.1.0&q=80&w=1080',
+      songCount: 38,
+      description: 'Năng lượng với nhạc điện tử',
+    },
+    {
+      id: '6',
+      name: 'Night Concerts',
+      cover: 'https://images.unsplash.com/photo-1701506516420-3ef4b27413c9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb25jZXJ0JTIwbmlnaHR8ZW58MXx8fHwxNzY0NDgzMjk4fDA&ixlib=rb-4.1.0&q=80&w=1080',
+      songCount: 45,
+      description: 'Live performances và concert recordings',
+    },
   ];
 
   // ✅ BƯỚC 3: LOGIC GỌI API VÀ XỬ LÝ DỮ LIỆU
@@ -306,7 +342,7 @@ export function HomePage({ onPlaySong, onArtistClick, onPlaylistClick }: HomePag
           ))}
         </div>
       </div>
-      
+
       {/* Recommended Songs */}
       <div>
         <div className="flex items-center justify-between mb-4">
