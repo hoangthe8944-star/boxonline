@@ -23,19 +23,29 @@ const PlaylistCover: React.FC<PlaylistCoverProps> = ({
 
     // 1. Hàm lấy URL ảnh - Đã sửa để tránh lấy nhầm ID làm URL
     const getTrackImageUrl = (track: any): string => {
+        // 1. Ảnh mặc định nếu mọi thứ thất bại
+        const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=200&auto=format&fit=crop";
+
         if (!track) return DEFAULT_IMAGE;
 
-        // Nếu track là một chuỗi (string)
+        // 2. Nếu là chuỗi (ID hoặc URL)
         if (typeof track === 'string') {
-            // Chỉ trả về nếu nó bắt đầu bằng http (là link thật), nếu không trả về ảnh mặc định
-            return track.startsWith('http') ? track : DEFAULT_IMAGE;
+            // CHỈ TRẢ VỀ NẾU CÓ CHỮ HTTP (Link thật)
+            if (track.startsWith('http')) return track;
+
+            // NẾU KHÔNG CÓ HTTP (Nghĩa là nó là ID 694...), trả về DEFAULT_IMAGE ngay
+            // Tuyệt đối không trả về chuỗi ID vì sẽ gây lỗi 404
+            return DEFAULT_IMAGE;
         }
 
-        // Nếu track là một object (SongDto)
-        // Ưu tiên coverUrl (giống trong apiclient.ts của bạn)
-        return track.coverUrl || track.thumbnailUrl || track.album?.coverUrl || DEFAULT_IMAGE;
-    };
+        // 3. Nếu là Object (songDetails)
+        const url = track.coverUrl || track.thumbnailUrl;
+        if (url && typeof url === 'string' && url.startsWith('http')) {
+            return url;
+        }
 
+        return DEFAULT_IMAGE;
+    };
     // 2. Logic hiển thị
     if (coverImage && coverImage.trim() !== "" && coverImage !== "null") {
         return (
