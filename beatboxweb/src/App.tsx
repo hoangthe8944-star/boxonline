@@ -113,7 +113,7 @@ export default function App() {
   return (
     <div className="flex h-screen bg-gradient-to-br from-blue-700 via-cyan-600 to-cyan-400 text-white overflow-hidden">
       <PremiumModal isOpen={isPremiumModalOpen} onClose={() => setIsPremiumModalOpen(false)} />
-      
+
       <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-blue-900/80 lg:hidden">
         <Menu className="w-6 h-6" />
       </button>
@@ -135,25 +135,24 @@ export default function App() {
         <main className="flex-1 overflow-y-auto pb-32">
           {/* TRANG CHỦ */}
           {currentPage === 'home' && (
-            <HomePage 
-              onPlaySong={handlePlaySong} 
-              onArtistClick={(artist) => { setSelectedArtist(artist); setCurrentPage('artist-detail'); }} 
+            <HomePage
+              onPlaySong={handlePlaySong}
+              onArtistClick={(artist) => { setSelectedArtist(artist); setCurrentPage('artist-detail'); }}
             />
           )}
 
           {/* TRANG TÌM KIẾM */}
           {currentPage === 'search' && <SearchPage searchQuery={searchQuery} onPlaySong={handlePlaySong} />}
-          
+
           {/* TRANG DANH SÁCH PLAYLIST */}
           {currentPage === 'playlists' && (
             <PlaylistsPage
               currentUserId={currentUserId}
               onPlaySong={handlePlaySong}
               onCreateClick={() => setCurrentPage('create-playlist')}
-              onPlaylistClick={handleOpenPlaylist} // <-- TRUYỀN HÀM TRỰC TIẾP
+              onPlaylistClick={handleOpenPlaylist}
             />
           )}
-
           {/* TRANG CHI TIẾT PLAYLIST */}
           {currentPage === 'playlist-detail' && selectedPlaylist && (
             <PlaylistDetailPage
@@ -162,7 +161,6 @@ export default function App() {
               onPlaySong={handlePlaySong}
             />
           )}
-
           {/* CÁC TRANG KHÁC */}
           {currentPage === 'profile' && <ProfilePage onLogout={handleLogout} />}
           {currentPage === 'library' && <LibraryPage onPlaySong={handlePlaySong} />}

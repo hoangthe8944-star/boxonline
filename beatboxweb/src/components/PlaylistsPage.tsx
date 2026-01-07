@@ -69,7 +69,8 @@ export function PlaylistsPage({
   // ------------------------
   const PlaylistGridItem = ({ playlist }: { playlist: PlaylistDto }) => (
     <div 
-      onClick={() => onPlaylistClick?.(playlist)} // Kích hoạt chuyển trang detail
+      onClick={() => {alert("Đang mở playlist: " + playlist.name); onPlaylistClick?.(playlist)}} // Kích hoạt chuyển trang detail
+      
       className="bg-white/5 backdrop-blur rounded-lg p-3 sm:p-4 hover:bg-white/10 transition-all cursor-pointer group flex flex-col h-full border border-white/5"
     >
       <div className="relative mb-3 sm:mb-4 aspect-square w-full">
