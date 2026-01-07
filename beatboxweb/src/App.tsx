@@ -26,15 +26,6 @@ import { ArtistPage, type Artist } from './components/ArtistPage';
 import { PremiumModal } from './components/PremiumModal';
 
 
-export interface Playlist {
-  id: string;
-  name: string;
-  cover: string;
-  songCount: number;
-  description?: string;
-}
-
-
 export type PageType = 'home' | 'library' | 'playlists' | 'search' | 'nowplaying' | 'profile' | 'create-playlist' | 'liked-songs' | 'recently-played' | 'podcast' | 'playlist-detail' | 'artist-detail';
 
 export default function App() {
