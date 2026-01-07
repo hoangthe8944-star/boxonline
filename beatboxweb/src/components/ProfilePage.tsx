@@ -4,7 +4,7 @@ import { getCurrentUser, setAccountPassword, logout } from '../../api/authapi';
 
 export function ProfilePage({ onLogout }: { onLogout: () => void }) {
   const user = getCurrentUser();
-  
+  console.log("Dữ liệu User hiện tại:", user); // Xem nó là user.id hay user._id
   // ✅ 1. Quản lý các View (Chế độ hiển thị)
   // 'main': Menu chính | 'password': Form đặt mật khẩu | 'edit': Form sửa profile
   const [activeView, setActiveView] = useState<'main' | 'password' | 'edit'>('main');
