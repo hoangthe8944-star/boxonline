@@ -9,9 +9,14 @@ export interface PlaylistDto {
   name: string;
   description?: string;
   ownerId: string;
+  ownerName?: string | null;
   publicPlaylist: boolean;
   type: "user" | "editorial" | "system";
   tracks: string[];
+  coverImage?: string | null;
+  songCount?: number;
+  updatedAt?: string | null;
+  songDetails?: any[]; // Thêm trường này để chứa chi tiết bài hát nếu cần
 }
 
 export interface PlaylistRequest {
