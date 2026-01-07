@@ -138,6 +138,7 @@ export default function App() {
             <HomePage
               onPlaySong={handlePlaySong}
               onArtistClick={(artist) => { setSelectedArtist(artist); setCurrentPage('artist-detail'); }}
+              onPlaylistClick={handleOpenPlaylist} 
             />
           )}
 

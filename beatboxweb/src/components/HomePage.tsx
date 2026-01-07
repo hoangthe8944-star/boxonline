@@ -22,10 +22,11 @@ import type { Playlist } from '../App';
 interface HomePageProps {
   onPlaySong: (song: Song, contextPlaylist: Song[]) => void;
   onArtistClick?: (artist: Artist) => void;
-
+  onPlaylistClick?: (playlist: Playlist) => void;
+  // other props
 }
 
-export function HomePage({ onPlaySong, onArtistClick }: HomePageProps) {
+export function HomePage({ onPlaySong, onArtistClick, onPlaylistClick }: HomePageProps) {
 
   // ✅ BƯỚC 2: TẠO STATE MỚI ĐỂ LƯU DỮ LIỆU TỪ API
   const [recentlyPlayed, setRecentlyPlayed] = useState<Song[]>([]);
@@ -284,6 +285,10 @@ export function HomePage({ onPlaySong, onArtistClick }: HomePageProps) {
           {featuredPlaylists.map((playlist) => (
             <div
               key={playlist.id}
+              onClick={() => {
+                console.log("Bấm vào playlist tại Home:", playlist.name);
+                onPlaylistClick?.(playlist);
+              }}
               className="bg-gradient-to-b from-blue-900/30 to-transparent backdrop-blur rounded-lg p-3 sm:p-4 hover:bg-blue-800/40 transition-all cursor-pointer group"
             >
               <div className="relative mb-3 sm:mb-4">
