@@ -272,7 +272,7 @@ export function HomePage({ onPlaySong, onArtistClick }: HomePageProps) {
         </div>
       </div>
 
-      {/* Featured Playlists (GIỮ NGUYÊN) */}
+      {/* Featured Playlists */}
       <div>
         <div className="flex items-center justify-between mb-4">
           <h3>Playlist nổi bật</h3>
