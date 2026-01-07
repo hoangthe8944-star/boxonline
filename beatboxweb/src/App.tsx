@@ -182,8 +182,8 @@ export default function App() {
               currentUserId={currentUserId}
               onPlaySong={handlePlaySong}
               onCreateClick={() => setCurrentPage('create-playlist')}
-              onPlaylistClick={(playlist) => {
-                setSelectedPlaylist(playlist);
+              onPlaylistClick={(handleOpenPlaylist) => {
+                setSelectedPlaylist(handleOpenPlaylist);
                 setCurrentPage('playlist-detail');
               }}
             />
