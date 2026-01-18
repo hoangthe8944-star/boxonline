@@ -15,7 +15,7 @@ import { PodcastPage } from './components/PodcastPage';
 import { PlaylistDetailPage } from './components/PlaylistDetailPage';
 import { VerifyPage } from './components/VerifyPage';
 import { LoginSuccess } from './components/LoginSuccess';
-import { recordPlayback } from '../api/apiclient';
+import { recordSongPlay } from '../api/apiclient';
 import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
 import { logout } from '../api/authapi';
@@ -71,13 +71,14 @@ export default function App() {
   // ✅ HÀM MỞ PLAYLIST (ĐÃ SỬA)
 
   const handlePlaySong = (song: Song, contextPlaylist: Song[] = []) => {
+    console.log("Đang gửi ID người dùng đi:", currentUserId);
     setCurrentSong(song);
     setIsPlaying(true);
     const newQueue = contextPlaylist.length > 0 ? contextPlaylist : [song];
     setPlayQueue(newQueue);
     const songIndex = newQueue.findIndex(s => s.id === song.id);
     setCurrentQueueIndex(songIndex !== -1 ? songIndex : 0);
-    recordPlayback(song.id).catch(err => console.error("Playback record error:", err));
+    recordSongPlay(song.id, currentUserId).catch(err => console.error("Playback record error:", err));
   };
 
   if (currentHash.includes('/login-success')) return <LoginSuccess />;
@@ -161,7 +162,7 @@ export default function App() {
           {currentPage === 'profile' && <ProfilePage onLogout={handleLogout} />}
           {currentPage === 'library' && <LibraryPage onPlaySong={handlePlaySong} />}
           {currentPage === 'liked-songs' && <LikedSongsPage onPlaySong={handlePlaySong} />}
-          {currentPage === 'recently-played' && <RecentlyPlayedPage onPlaySong={handlePlaySong} />}
+          {currentPage === 'recently-played' && <RecentlyPlayedPage onPlaySong={handlePlaySong} currentUserId={currentUserId} />}
           {currentPage === 'podcast' && <PodcastPage onStartLive={() => alert("Đang phát triển!")} />}
           {currentPage === 'artist-detail' && selectedArtist && (
             <ArtistPage artist={selectedArtist} onBack={() => setCurrentPage('home')} onPlaySong={handlePlaySong} />
